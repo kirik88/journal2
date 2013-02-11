@@ -16,11 +16,15 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     journals.cpp \
     journal.cpp \
-    loader.cpp
+    loader.cpp \
+    user.cpp \
+    htmlloader.cpp
 
 HEADERS  += mainwindow.h \
     journals.h \
     journal.h \
-    loader.h
+    loader.h \
+    user.h \
+    htmlloader.h
 
 FORMS    += mainwindow.ui
