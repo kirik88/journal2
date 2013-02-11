@@ -4,7 +4,9 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui    \
+    xml \
+    network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -17,14 +19,12 @@ SOURCES += main.cpp\
     journals.cpp \
     journal.cpp \
     loader.cpp \
-    user.cpp \
-    htmlloader.cpp
+    user.cpp
 
 HEADERS  += mainwindow.h \
     journals.h \
     journal.h \
     loader.h \
-    user.h \
-    htmlloader.h
+    user.h
 
 FORMS    += mainwindow.ui

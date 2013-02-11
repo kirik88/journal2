@@ -8,7 +8,7 @@ class User
 public:
     User(int id, QString login, QString password = "");
 
-    /* идентификационные данные пользователя */
+    /* идентификационные данные пользователя, пароль хешированный md5 */
     QString login, password;
 
 private:
