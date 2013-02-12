@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/lng">
+        <file>lng/qt_ru.qm</file>
+    </qresource>
+</RCC>

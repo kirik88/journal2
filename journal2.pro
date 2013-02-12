@@ -32,3 +32,9 @@ HEADERS  += mainwindow.h \
     answer.h
 
 FORMS    += mainwindow.ui
+
+RESOURCES += \
+    journal2.qrc
+
+RC_FILE += \
+    journal2.rc
