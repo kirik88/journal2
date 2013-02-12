@@ -9,7 +9,7 @@ Journals::Journals(Loader *loader)
 // загрузить журнал по его идентификатору (id) с необходимостью перезагрузки его данных (reload)
 Journal *Journals::getJournal(int id, bool reload)
 {
-    Journal *journal = NULL;
+    Journal *journal = 0;
 
     // пробуем отыскать журнал в списке
     foreach (Journal *journal, journals)
@@ -24,7 +24,7 @@ Journal *Journals::getJournal(int id, bool reload)
         Journal *loaded = loader->loadJournal(id);
 
         // добавляем журнал в список, если его ранее не было
-        if (journal == NULL)
+        if (journal)
         {
             journals.append(loaded);
             journal = loaded;

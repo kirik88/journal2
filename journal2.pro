@@ -19,12 +19,16 @@ SOURCES += main.cpp\
     journals.cpp \
     journal.cpp \
     loader.cpp \
-    user.cpp
+    user.cpp \
+    answer.cpp \
+    answerenums.cpp \
+    loaderenums.cpp
 
 HEADERS  += mainwindow.h \
     journals.h \
     journal.h \
     loader.h \
-    user.h
+    user.h \
+    answer.h
 
 FORMS    += mainwindow.ui

@@ -1,6 +1,7 @@
 #ifndef LOADER_H
 #define LOADER_H
 
+#include <QObject>
 #include <QString>
 #include <QUrl>
 #include <QCryptographicHash>
@@ -8,11 +9,16 @@
 
 #include "journal.h"
 #include "user.h"
+#include "answer.h"
 
-class Loader
+#include "loaderenums.cpp"
+
+class Loader : public QObject
 {
+   Q_OBJECT
 public:
-    Loader(const QString &site, const QString &storage);
+    explicit Loader(const QString &site, const QString &storage);
+    //explicit Loader(QObject *parent = 0);
 
     /* основные функции */
     void login(const QString &login, const QString &password);
@@ -26,17 +32,22 @@ private:
     QString site; // путь к сайту
     QString storage; // наименование хранилища данных
     User *user; // пользователь, который осуществляет работу с загрузчиком
+    LoaderOperation operation; // текущая операция загрузчика
 
     /* переменные для работы с сетью */
-    QNetworkAccessManager network;
-    QNetworkReply *reply;
+    QNetworkAccessManager *network;
     QEventLoop *httpLoop;
 
     /* флаги */
     bool httpAborted; // признак остановки сетевой активности
 
-    /* функции ответов сервера */
-    void httpLoginFinished();
+signals:
+    /* сигналы по завершении */
+    void loginFinished(Answer *answer);
+
+private slots:
+    /* ответы сервера */
+    void httpFinished(QNetworkReply *reply);
 
 };
 

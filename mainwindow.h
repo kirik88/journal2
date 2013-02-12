@@ -2,6 +2,12 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QUrl>
+#include <QCryptographicHash>
+#include <QtNetwork>
+#include <QMessageBox>
+
+#include "loader.h"
 
 namespace Ui {
 class MainWindow;
@@ -17,6 +23,11 @@ public:
     
 private:
     Ui::MainWindow *ui;
+
+private slots:
+    void buttonClick();
+    void loginFinished(Answer *answer);
+
 };
 
 #endif // MAINWINDOW_H
