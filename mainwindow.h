@@ -9,6 +9,11 @@
 
 #include "loader.h"
 
+// версия приложения
+static QString majorVersion = "0";
+static QString minorVersion = "01";
+static QString appVersion = majorVersion + "." + minorVersion;
+
 namespace Ui {
 class MainWindow;
 }
