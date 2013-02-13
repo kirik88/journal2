@@ -5,9 +5,18 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+    // генератор псевдослучайных чисел
+    qsrand(QTime(0,0,0).secsTo(QTime::currentTime()));
+
+    // стиль приложения переопределяем только для Windows
+    #if defined(Q_OS_WIN)
+        QApplication::setStyle(QStyleFactory::create("Fusion"));
+        QApplication::setPalette(QApplication::style()->standardPalette());
+    #endif
+
     ui->setupUi(this);
 
-    QObject::connect(ui->pushButton, SIGNAL(clicked()), this, SLOT(buttonClick()));
+    //QObject::connect(ui->pushButton, SIGNAL(clicked()), this, SLOT(buttonClick()));
 }
 
 MainWindow::~MainWindow()

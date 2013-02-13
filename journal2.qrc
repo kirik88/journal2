@@ -1,5 +1,53 @@
 <RCC>
+    <qresource prefix="/icons">
+        <file alias="save">icons/save.ico</file>
+        <file alias="delete">icons/delete.ico</file>
+        <file>icons/exit.ico</file>
+        <file>icons/journals.ico</file>
+        <file alias="new">icons/new.ico</file>
+        <file>icons/processing.ico</file>
+        <file alias="refresh">icons/refresh.ico</file>
+        <file alias="journal">icons/journal.ico</file>
+        <file alias="journal_write">icons/journal_write.ico</file>
+        <file alias="open">icons/open.ico</file>
+        <file alias="save_need">icons/save_need.ico</file>
+        <file>icons/tools.ico</file>
+        <file alias="export">icons/export.ico</file>
+        <file alias="import">icons/import.ico</file>
+        <file alias="plus">icons/plus.ico</file>
+        <file alias="about">icons/about.ico</file>
+        <file alias="archive">icons/archive.ico</file>
+        <file alias="journal_archived">icons/journal_archived.ico</file>
+        <file alias="unarchive">icons/unarchive.ico</file>
+        <file alias="data">icons/journal_data.ico</file>
+    </qresource>
+    <qresource prefix="/animations">
+        <file alias="loading">animations/loading.gif</file>
+        <file alias="loading_min">animations/loading_min.gif</file>
+    </qresource>
+    <qresource prefix="/images">
+        <file>images/login.png</file>
+        <file>images/arrow.png</file>
+        <file alias="marks">images/marks.png</file>
+        <file alias="comments_small">images/comments_small.png</file>
+        <file>images/main_big.png</file>
+    </qresource>
+    <qresource prefix="/icons/16">
+        <file alias="open">icons/16/open.ico</file>
+        <file alias="mark1">icons/16/mark1.ico</file>
+        <file alias="mark2">icons/16/mark2.ico</file>
+        <file alias="mark3">icons/16/mark3.ico</file>
+        <file alias="mark4">icons/16/mark4.ico</file>
+        <file alias="mark5">icons/16/mark5.ico</file>
+        <file alias="check">icons/16/check.ico</file>
+        <file alias="uncheck">icons/16/uncheck.ico</file>
+        <file alias="text">icons/16/text.ico</file>
+        <file alias="plus">icons/16/plus.ico</file>
+        <file alias="markn">icons/16/markn.ico</file>
+        <file alias="markNone">icons/16/markNone.ico</file>
+        <file alias="comments">icons/16/comments.ico</file>
+    </qresource>
     <qresource prefix="/lng">
-        <file>lng/qt_ru.qm</file>
+        <file alias="qt_ru.qm">lng/qt_ru.qm</file>
     </qresource>
 </RCC>

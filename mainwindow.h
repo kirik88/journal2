@@ -6,6 +6,7 @@
 #include <QCryptographicHash>
 #include <QtNetwork>
 #include <QMessageBox>
+#include <QStyleFactory>
 
 #include "loader.h"
 
