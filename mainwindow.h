@@ -7,6 +7,7 @@
 #include <QtNetwork>
 #include <QMessageBox>
 #include <QStyleFactory>
+#include <QMovie>
 
 #include "journals.h"
 
@@ -69,10 +70,13 @@ private:
 
     /* основные функции приложения */
     void prepareApplication();
+    void readSettings();
+    void connectSignals();
     void changeMainMode(MainMode mode);
 
 private slots:
-    //void buttonClick();
+    void on_buttonLogin_clicked();
+    void on_buttonExit_clicked();
     //void loginFinished(Answer *answer);
 
 };

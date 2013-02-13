@@ -8,6 +8,9 @@ Loader::Loader(const QString &site, const QString &storage) : QObject(0)
 
     // инициализируем переменные
     network = new QNetworkAccessManager();
+    proxy = new QNetworkProxy();
+    httpLoop = 0;
+    lastAnswer = 0;
     operation = IDDLE;
 
     // отлавливаем сигналы
@@ -18,13 +21,26 @@ Loader::Loader(const QString &site, const QString &storage) : QObject(0)
             this, SLOT(httpDataReadProgress(qint64, qint64)));*/
 }
 
+Loader::~Loader()
+{
+    abort();
+
+    delete network;
+    if (proxy) delete proxy;
+    if (httpLoop) delete httpLoop;
+    if (lastAnswer) delete lastAnswer;
+}
+
 // авторизоваться в системе
-void Loader::login(const QString &login, const QString &password)
+// вернёт false, если операцию отменили
+bool Loader::login(bool loop, const QString &login, const QString &password)
 {
     if (operation != IDDLE)
     {
-        return; //TODO:вызывать исключение
+        return false; //TODO:вызывать исключение
     }
+    operation = LOGINING;
+    httpAborted = false;
 
     // находим md5-хэш пароля
     QString hash = QCryptographicHash::hash(QByteArray().append(password), QCryptographicHash::Md5).toHex();
@@ -34,72 +50,106 @@ void Loader::login(const QString &login, const QString &password)
 
     // запускаем
     network->get(QNetworkRequest(url));
+
+    // если нужно, "замираем" до конца выполнения запроса
+    if (loop)
+    {
+        httpLoop = new QEventLoop();
+
+        int res = httpLoop->exec();
+
+        delete httpLoop;
+        httpLoop = 0;
+
+        return (res == 0);
+    }
+
+    return true;
 }
 
 // ответ сервера при логине
 void Loader::httpFinished(QNetworkReply *reply)
 {
+    // удаляем предыдущий ответ
+    if (lastAnswer)
+    {
+        delete lastAnswer;
+        lastAnswer = 0;
+    }
+
     // если прервали
-   if (httpAborted)
-   {
-       reply->deleteLater();
-       reply = 0;
+    if (httpAborted)
+    {
+        reply->deleteLater();
+        reply = 0;
 
-       if (httpLoop) httpLoop->exit(1);
-   }
-   else
-   {
-       //QVariant redirectionTarget = reply->attribute(QNetworkRequest::RedirectionTargetAttribute);
-       // на случай ошибки
-       if (reply->error())
-       {
-           AnswerCode code;
-           QString errorMessage;
+        if (httpLoop) httpLoop->exit(1);
+    }
+    else
+    {
+        //QVariant redirectionTarget = reply->attribute(QNetworkRequest::RedirectionTargetAttribute);
+        // на случай ошибки
+        if (reply->error())
+        {
+            AnswerCode code;
+            QString errorMessage;
 
-           switch (reply->error())
-           {
-           case QNetworkReply::HostNotFoundError:
-               code = HOST_NOT_FOUND1;
-               errorMessage = tr("сайт недоступен");
-               break;
-           case QNetworkReply::ConnectionRefusedError:
-               code = CONNECTION_REFUSED;
-               errorMessage = tr("нет доступа к интернету");
-               break;
-           default:
-               code = OTHER_ERROR;
-               errorMessage = reply->errorString();
-           }
+            switch (reply->error())
+            {
+            case QNetworkReply::HostNotFoundError:
+                code = NOT_FOUND_HOST;
+                errorMessage = tr("Сайт недоступен.");
+                break;
+            case QNetworkReply::ConnectionRefusedError:
+                code = CONNECTION_REFUSED;
+                errorMessage = tr("Нет доступа к интернету.");
+                break;
+            default:
+                code = OTHER_ERROR;
+                errorMessage = reply->errorString();
+            }
 
-           emit loginFinished(new Answer(code, errorMessage));
+            lastAnswer = new Answer(code, errorMessage);
+        }
+        /*else if (!redirectionTarget.isNull())
+        {
+            QUrl newUrl = url.resolved(redirectionTarget.toUrl());
+            if (QMessageBox::question(this, tr("HTTP"),
+                     tr("Redirect to %1 ?").arg(newUrl.toString()),
+                     QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
+            url = newUrl;
+            reply->deleteLater();
+            file->open(QIODevice::WriteOnly);
+            file->resize(0);
+            startRequest(url);
+            return;
+        }
+        }*/
+        else
+        {
+            lastAnswer = new Answer(reply->readAll());
+        }
 
-           if (httpLoop) httpLoop->exit(1);
-       }
-       /*else if (!redirectionTarget.isNull()) {
-           QUrl newUrl = url.resolved(redirectionTarget.toUrl());
-           if (QMessageBox::question(this, tr("HTTP"),
-                                     tr("Redirect to %1 ?").arg(newUrl.toString()),
-                                     QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
-               url = newUrl;
-               reply->deleteLater();
-               file->open(QIODevice::WriteOnly);
-               file->resize(0);
-               startRequest(url);
-               return;
-           }
-       }*/
-       else
-       {
-           Answer *answer = new Answer(reply->readAll());
+        // освобождение ресурсов
+        reply->deleteLater();
+        reply = 0;
 
-           emit loginFinished(answer);
-       }
+        // выпускаем нужный сигнал
+        switch (operation)
+        {
+        case LOGINING:
+            emit loginFinished(lastAnswer);
+            break;
+        default:
+            break;
+        }
 
-       // освобождение ресурсов
-       reply->deleteLater();
-       reply = 0;
+        operation = IDDLE;
+
+        if (httpLoop) httpLoop->exit(0);
    }
 }
+
 
 // остановить сетевую активность
 void Loader::abort()

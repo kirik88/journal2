@@ -10,6 +10,7 @@ class Journals
 {
 public:
     Journals(Loader *loader);
+    ~Journals();
 
     /* функции работы с журналами */
     Journal *getJournal(int id, bool reload = true);

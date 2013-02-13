@@ -6,6 +6,11 @@ Journals::Journals(Loader *loader)
     this->loader = loader;
 }
 
+Journals::~Journals()
+{
+    delete loader;
+}
+
 // загрузить журнал по его идентификатору (id) с необходимостью перезагрузки его данных (reload)
 Journal *Journals::getJournal(int id, bool reload)
 {

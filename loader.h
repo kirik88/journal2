@@ -18,14 +18,17 @@ class Loader : public QObject
    Q_OBJECT
 public:
     explicit Loader(const QString &site, const QString &storage);
-    //explicit Loader(QObject *parent = 0);
+    ~Loader();
 
     /* основные функции */
-    void login(const QString &login, const QString &password);
+    bool login(bool loop, const QString &login, const QString &password);
     void abort();
 
     /* функции для работы с журналами */
     Journal *loadJournal(int id, bool full = true);
+
+    /* внешние данные */
+    Answer *lastAnswer; // последний ответ; загрузчик сам занимается очисткой этой переменной
 
 private:
     /* внутренние данные */
@@ -36,6 +39,7 @@ private:
 
     /* переменные для работы с сетью */
     QNetworkAccessManager *network;
+    QNetworkProxy *proxy;
     QEventLoop *httpLoop;
 
     /* флаги */
