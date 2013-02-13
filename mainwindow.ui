@@ -14,7 +14,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Мой журнал</string>
+   <string>Электронный журнал 2</string>
   </property>
   <property name="windowOpacity">
    <double>1.000000000000000</double>
@@ -24,7 +24,16 @@
     <bool>true</bool>
    </property>
    <layout class="QHBoxLayout" name="horizontalLayout_2">
-    <property name="margin">
+    <property name="leftMargin">
+     <number>3</number>
+    </property>
+    <property name="topMargin">
+     <number>3</number>
+    </property>
+    <property name="rightMargin">
+     <number>3</number>
+    </property>
+    <property name="bottomMargin">
      <number>3</number>
     </property>
     <item>
@@ -54,7 +63,7 @@
           <string>Журналы</string>
          </property>
          <property name="icon">
-          <iconset resource="journal.qrc">
+          <iconset resource="journal2.qrc">
            <normaloff>:/icons/icons/journals.ico</normaloff>:/icons/icons/journals.ico</iconset>
          </property>
          <property name="iconSize">
@@ -80,7 +89,7 @@
           <string/>
          </property>
          <property name="pixmap">
-          <pixmap resource="journal.qrc">:/images/images/arrow.png</pixmap>
+          <pixmap resource="journal2.qrc">:/images/images/arrow.png</pixmap>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
@@ -105,7 +114,7 @@
           <string>[журнал]</string>
          </property>
          <property name="icon">
-          <iconset resource="journal.qrc">
+          <iconset resource="journal2.qrc">
            <normaloff>:/icons/journal</normaloff>:/icons/journal</iconset>
          </property>
          <property name="iconSize">
@@ -131,7 +140,7 @@
           <string>Сохранить</string>
          </property>
          <property name="icon">
-          <iconset resource="journal.qrc">
+          <iconset resource="journal2.qrc">
            <normaloff>:/icons/save</normaloff>:/icons/save</iconset>
          </property>
          <property name="iconSize">
@@ -157,7 +166,7 @@
           <string>Обновить</string>
          </property>
          <property name="icon">
-          <iconset resource="journal.qrc">
+          <iconset resource="journal2.qrc">
            <normaloff>:/icons/refresh</normaloff>:/icons/refresh</iconset>
          </property>
          <property name="iconSize">
@@ -186,7 +195,7 @@
           <string>Инструменты</string>
          </property>
          <property name="icon">
-          <iconset resource="journal.qrc">
+          <iconset resource="journal2.qrc">
            <normaloff>:/icons/icons/tools.ico</normaloff>:/icons/icons/tools.ico</iconset>
          </property>
          <property name="iconSize">
@@ -212,7 +221,7 @@
           <string>Обработка</string>
          </property>
          <property name="icon">
-          <iconset resource="journal.qrc">
+          <iconset resource="journal2.qrc">
            <normaloff>:/icons/icons/processing.ico</normaloff>:/icons/icons/processing.ico</iconset>
          </property>
          <property name="iconSize">
@@ -238,7 +247,7 @@
           <string>О программе</string>
          </property>
          <property name="icon">
-          <iconset resource="journal.qrc">
+          <iconset resource="journal2.qrc">
            <normaloff>:/icons/about</normaloff>:/icons/about</iconset>
          </property>
          <property name="iconSize">
@@ -264,7 +273,7 @@
           <string>Выйти</string>
          </property>
          <property name="icon">
-          <iconset resource="journal.qrc">
+          <iconset resource="journal2.qrc">
            <normaloff>:/icons/icons/exit.ico</normaloff>:/icons/icons/exit.ico</iconset>
          </property>
          <property name="iconSize">
@@ -353,7 +362,7 @@
                 <string/>
                </property>
                <property name="pixmap">
-                <pixmap resource="journal.qrc">:/images/images/login.png</pixmap>
+                <pixmap resource="journal2.qrc">:/images/images/login.png</pixmap>
                </property>
               </widget>
              </item>
@@ -567,7 +576,16 @@ p, li { white-space: pre-wrap; }
        <enum>QFrame::Raised</enum>
       </property>
       <layout class="QGridLayout" name="gridLayout_2">
-       <property name="margin">
+       <property name="leftMargin">
+        <number>3</number>
+       </property>
+       <property name="topMargin">
+        <number>3</number>
+       </property>
+       <property name="rightMargin">
+        <number>3</number>
+       </property>
+       <property name="bottomMargin">
         <number>3</number>
        </property>
        <property name="horizontalSpacing">
@@ -629,7 +647,16 @@ p, li { white-space: pre-wrap; }
        <enum>QFrame::Raised</enum>
       </property>
       <layout class="QGridLayout" name="gridLayout">
-       <property name="margin">
+       <property name="leftMargin">
+        <number>3</number>
+       </property>
+       <property name="topMargin">
+        <number>3</number>
+       </property>
+       <property name="rightMargin">
+        <number>3</number>
+       </property>
+       <property name="bottomMargin">
         <number>3</number>
        </property>
        <item row="0" column="1">
@@ -681,7 +708,16 @@ p, li { white-space: pre-wrap; }
        <enum>QFrame::Raised</enum>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout_3">
-       <property name="margin">
+       <property name="leftMargin">
+        <number>3</number>
+       </property>
+       <property name="topMargin">
+        <number>3</number>
+       </property>
+       <property name="rightMargin">
+        <number>3</number>
+       </property>
+       <property name="bottomMargin">
         <number>3</number>
        </property>
        <item>
@@ -746,7 +782,7 @@ p, li { white-space: pre-wrap; }
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="journal.qrc"/>
+  <include location="journal2.qrc"/>
  </resources>
  <connections/>
 </ui>

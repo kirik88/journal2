@@ -14,10 +14,10 @@ public:
     /* функции работы с журналами */
     Journal *getJournal(int id, bool reload = true);
 
-private:
     // загрузчик данных
     Loader *loader;
 
+private:
     // список журналов
     QList<Journal *> journals;
 

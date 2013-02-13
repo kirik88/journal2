@@ -22,7 +22,8 @@ SOURCES += main.cpp\
     user.cpp \
     answer.cpp \
     answerenums.cpp \
-    loaderenums.cpp
+    loaderenums.cpp \
+    enums.cpp
 
 HEADERS  += mainwindow.h \
     journals.h \
