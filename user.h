@@ -3,17 +3,17 @@
 
 #include <QString>
 
+#include "userenums.cpp"
+
 class User
 {
 public:
     User(int id, QString login, QString password = "");
 
-    /* идентификационные данные пользователя, пароль хешированный md5 */
-    QString login, password;
-
-private:
-    /* внутренние данные пользователя */
-    int id;
+    /* данные пользователя  */
+    int id; // идентификатор
+    QString login, password; // логин и хешированный md5 пароль
+    UserType userType; // уровень прав
 
 };
 

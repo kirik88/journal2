@@ -22,8 +22,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
-    delete ui; 
     if (journals) delete journals;
+    delete ui;
 }
 
 // подготовка приложения при первом запуске
@@ -313,7 +313,21 @@ void MainWindow::changeMainMode(MainMode mode)
     //updateWindowTitle();
 
     // обновление виджетов
-    //updateWidgets();
+    updateWidgets();
+}
+
+// обновление размеров и положений виджетов
+void MainWindow::updateWidgets()
+{
+    // надпись-ссылка "Вернуться к журналу"
+    if (labelBack->parentWidget())
+        labelBack->move(labelBack->height(),
+                labelBack->parentWidget()->contentsRect().height() - labelBack->height() * 1.5);
+
+    // надпись-ссылка "Обновить"
+    if (labelRefresh->parentWidget())
+        labelRefresh->move(labelRefresh->parentWidget()->contentsRect().width() - labelRefresh->width() - labelRefresh->height(),
+                labelRefresh->parentWidget()->contentsRect().height() - labelRefresh->height() * 1.5);
 }
 
 // реакция на нажатие кнопки "Войти в систему"
@@ -366,6 +380,10 @@ void MainWindow::on_buttonLogin_clicked()
         {
             ui->labelLoginError->setText(tr("Ошибка при подключении: ") + answer->getResult());
             ui->labelLoginError->show();
+        }
+        else
+        {
+            changeMainMode(mmJournals);
         }
 //        // получение классов
 //        if (getClasses(true))

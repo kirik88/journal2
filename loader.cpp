@@ -7,6 +7,7 @@ Loader::Loader(const QString &site, const QString &storage) : QObject(0)
     this->storage = storage;
 
     // инициализируем переменные
+    user = 0;
     network = new QNetworkAccessManager();
     proxy = new QNetworkProxy();
     httpLoop = 0;
@@ -24,6 +25,8 @@ Loader::Loader(const QString &site, const QString &storage) : QObject(0)
 Loader::~Loader()
 {
     abort();
+
+    if (user) delete user;
 
     delete network;
     if (proxy) delete proxy;
@@ -44,6 +47,10 @@ bool Loader::login(bool loop, const QString &login, const QString &password)
 
     // находим md5-хэш пароля
     QString hash = QCryptographicHash::hash(QByteArray().append(password), QCryptographicHash::Md5).toHex();
+
+    // сохраняем данные пользователя
+    if (user) delete user;
+    user = new User(0, login, hash);
 
     // формируем строку запроса
     QUrl url = QString("http://%1/login/%2/%3/%4/xml").arg(site).arg(storage).arg(login).arg(hash);
@@ -138,7 +145,15 @@ void Loader::httpFinished(QNetworkReply *reply)
         switch (operation)
         {
         case LOGINING:
+            // при успехе сохраняем данные пользователя
+            if (lastAnswer->getCode() == OK)
+            {
+                user->id = lastAnswer->getValue("id").toInt();
+                user->userType = UserType(lastAnswer->getValue("user_type").toInt());
+            }
+
             emit loginFinished(lastAnswer);
+
             break;
         default:
             break;

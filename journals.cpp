@@ -9,6 +9,12 @@ Journals::Journals(Loader *loader)
 Journals::~Journals()
 {
     delete loader;
+
+    foreach (Journal *journal, journals)
+    {
+        delete journal;
+    }
+    journals.clear();
 }
 
 // загрузить журнал по его идентификатору (id) с необходимостью перезагрузки его данных (reload)

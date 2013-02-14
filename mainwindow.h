@@ -52,6 +52,7 @@ private:
 
     /* журналы */
     Journals *journals;
+    Journal *currentJournal; // текущий выбранный журнал
 
     /* дополнительно */
     bool useDialogGlass; // использовать затемнение при выводе диалоговых окон
@@ -73,6 +74,7 @@ private:
     void readSettings();
     void connectSignals();
     void changeMainMode(MainMode mode);
+    void updateWidgets();
 
 private slots:
     void on_buttonLogin_clicked();
