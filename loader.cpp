@@ -81,6 +81,7 @@ void Loader::abort()
 }
 
 // загрузить все доступные пользователю журналы
+// вернёт false, если операцию отменили
 bool Loader::loadJournals(bool full, bool loop)
 {
     if (operation != loIDDLE)
@@ -113,6 +114,7 @@ bool Loader::loadJournals(bool full, bool loop)
 }
 
 // загрузить журнал по его идентификатору (id); загрузить полностью все данные журнала (full)
+// вернёт false, если операцию отменили
 bool Loader::loadJournal(int id, bool full, bool loop)
 {
     return false;

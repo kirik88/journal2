@@ -372,25 +372,21 @@ void MainWindow::on_buttonLogin_clicked()
     ui->movieLogin->show();
 
     // подключение
-    if (journals->loader->login(login, password))
+    QString loginMessage;
+    if (journals->tryLogin(login, password, &loginMessage))
     {
-        Answer *answer = journals->loader->lastAnswer;
-
-        if (answer->getCode() != OK)
-        {
-            ui->labelLoginError->setText(tr("Ошибка при подключении: ") + answer->getResult());
-            ui->labelLoginError->show();
-        }
-        else
-        {
-            changeMainMode(mmJournals);
-        }
+        changeMainMode(mmJournals);
 //        // получение классов
 //        if (getClasses(true))
 //        {
 //            // загрузка журналов
 //            loadJournals(true);
 //        }
+    }
+    else
+    {
+        ui->labelLoginError->setText(tr("Ошибка при подключении: ") + loginMessage);
+        ui->labelLoginError->show();
     }
 
     // снова отображаем кнопки
