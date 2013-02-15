@@ -5,8 +5,9 @@
 #include <QString>
 #include <QList>
 
-#include "journal.h"
 #include "loader.h"
+#include "journallist.h"
+#include "journal.h"
 
 class Journals : public QObject
 {
@@ -15,18 +16,26 @@ public:
     explicit Journals(Loader *loader);
     ~Journals();
 
+    /* основные данные */
+    JournalList *journals; // список журналов
+
     /* основные функции */
     bool tryLogin(const QString &login, const QString &password, QString *message);
 
     /* функции работы с журналами */
+    bool refreshJournals(QString *message);
     Journal *getJournal(int id, bool reload = true);
 
-    // загрузчик данных
-    Loader *loader;
+    /* функции работы с данными */
+    void clear();
 
 private:
-    // список журналов
-    QList<Journal *> journals;
+    /* внутренние данные */
+    Loader *loader; // загрузчик
+
+signals:
+
+public slots:
 
 };
 

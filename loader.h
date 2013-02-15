@@ -1,11 +1,11 @@
 #ifndef LOADER_H
 #define LOADER_H
 
+#include <QtNetwork>
 #include <QObject>
 #include <QString>
 #include <QUrl>
 #include <QCryptographicHash>
-#include <QtNetwork>
 
 #include "journal.h"
 #include "user.h"
@@ -20,6 +20,9 @@ public:
     explicit Loader(const QString &site, const QString &storage);
     ~Loader();
 
+    /* основные данные */
+    Answer *lastAnswer; // последний ответ; загрузчик сам занимается очисткой этой переменной
+
     /* основные функции */
     bool login(const QString &login, const QString &password, bool loop = true);
     void abort();
@@ -27,9 +30,6 @@ public:
     /* функции для работы с журналами */
     bool loadJournals(bool full = false, bool loop = true);
     bool loadJournal(int id, bool full = true, bool loop = true);
-
-    /* внешние данные */
-    Answer *lastAnswer; // последний ответ; загрузчик сам занимается очисткой этой переменной
 
 private:
     /* внутренние данные */

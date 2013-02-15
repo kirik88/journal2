@@ -1,8 +1,8 @@
 #ifndef ANSWER_H
 #define ANSWER_H
 
-#include <QObject>
 #include <QtXml>
+#include <QObject>
 #include <QString>
 
 #include "answerenums.cpp"
@@ -19,7 +19,7 @@ public:
     QString getValue(const QString &name);
 
 private:
-    /* функция парсинга xml-ответа */
+    /* функция парсинга xml-данных */
     void parseNode(QDomNode node);
 
     /* переменные с данными ответа */

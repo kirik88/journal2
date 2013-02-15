@@ -6,7 +6,7 @@ Answer::Answer(const QString &xml)
     this->result = QT_TR_NOOP(QString::fromUtf8("Получен некорректный ответ от хранилища.")); // TODO:TR
 
     QDomDocument doc;
-    if (!doc.setContent(xml/*.toAscii()*/)) return;
+    if (!doc.setContent(xml)) return;
 
     QDomElement docElem = doc.documentElement();
 

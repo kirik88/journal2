@@ -4,17 +4,15 @@ Journals::Journals(Loader *loader) : QObject(0)
 {
     // сохраняем параметры
     this->loader = loader;
+
+    // инициализируем переменные
+    journals = 0;
 }
 
 Journals::~Journals()
 {
     delete loader;
-
-    foreach (Journal *journal, journals)
-    {
-        delete journal;
-    }
-    journals.clear();
+    if (journals) delete journals;
 }
 
 // попробовать подключиться к системе под логином (login) и паролем (password), с выводом сообщения об ошибке (message)
@@ -23,10 +21,12 @@ bool Journals::tryLogin(const QString &login, const QString &password, QString *
 {
     *message = "";
 
+    // подключение через загрузчик
     if (loader->login(login, password))
     {
         Answer *answer = loader->lastAnswer;
 
+        // при ошибке возвращаем сообщение
         if (answer->getCode() != OK)
         {
             *message = answer->getResult();
@@ -39,13 +39,42 @@ bool Journals::tryLogin(const QString &login, const QString &password, QString *
     return false;
 }
 
+// обновить/загрузить список журналов
+bool Journals::refreshJournals(QString *message)
+{
+    *message = "";
+
+    // загружаем через загрузчик
+    if (loader->loadJournals())
+    {
+        Answer *answer = loader->lastAnswer;
+
+        // при ошибке возвращаем сообщение
+        if (answer->getCode() != OK)
+        {
+            *message = answer->getResult();
+            return false;
+        };
+
+        if (journals) delete journals;
+
+        journals = new JournalList(answer->getValue("journals"));
+
+        return true;
+    }
+
+    return false;
+}
+
 // загрузить журнал по его идентификатору (id) с необходимостью перезагрузки его данных (reload)
 Journal *Journals::getJournal(int id, bool reload)
 {
+    if (!journals) return 0;
+
     Journal *journal = 0;
 
     // пробуем отыскать журнал в списке
-    foreach (Journal *journal, journals)
+    foreach (Journal *journal, *journals)
     {
         if (journal->getId() == id) journal = journal;
     }
@@ -59,7 +88,7 @@ Journal *Journals::getJournal(int id, bool reload)
         // добавляем журнал в список, если его ранее не было
         if (journal)
         {
-            journals.append(loaded);
+            journals->append(loaded);
             journal = loaded;
         }
         else // иначе обновляем информацию у имеющегося
@@ -69,4 +98,12 @@ Journal *Journals::getJournal(int id, bool reload)
     }
 
     return journal;
+}
+
+// очистка списка журналов
+void Journals::clear()
+{
+    if (!journals) return;
+
+    journals->clear();
 }

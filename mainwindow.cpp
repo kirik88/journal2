@@ -22,8 +22,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
-    if (journals) delete journals;
     delete ui;
+    if (journals) delete journals;
 }
 
 // подготовка приложения при первом запуске
@@ -330,6 +330,133 @@ void MainWindow::updateWidgets()
                 labelRefresh->parentWidget()->contentsRect().height() - labelRefresh->height() * 1.5);
 }
 
+// заполнение дерева журналов
+void MainWindow::fillTree()
+{
+    // очищаем
+    ui->treeJournals->clear();
+
+    // защита от дурака
+    if (!journals || !journals->journals) return;
+
+    for (int i = 0; journals->journals->count() > i; i++)
+    {
+        Journal *journal = journals->journals->at(i);
+
+        // в зависимости от прав на запись разная иконка
+        //QIcon icon(journal->deleted ? ":/icons/delete" : (journal->archived ? ":/icons/journal_archived" :
+        //        (!user || user->readonly || !journal || journal->readonly ? ":/icons/journal" : ":/icons/journal_write")
+        //        ));
+        QIcon icon(":/icons/journal_write");
+
+        QTreeWidgetItem *item = new QTreeWidgetItem(
+                QStringList()
+                <<  tr("%1").arg(journal->name)
+                << ""//(journal->classId > 0 ? classes->classById(journal->classId)->name : "")
+                << ""//(journal->year > 0 ? tr("%1-%2").arg(journal->year).arg(journal->year+1) : "")
+                <<  journal->description);
+
+        ui->treeJournals->addTopLevelItem(item);
+
+        // название журнала жирное и с иконкой
+        QFont font = item->font(0);
+        font.setBold(true);
+        item->setFont(0, font);
+        item->setIcon(0, icon);
+
+        // описание курсивом
+        font = item->font(3);
+        font.setItalic(true);
+        item->setFont(3, font);
+
+        // дата и время изменения справа
+        // кнопка на открытие журнала справа и с иконкой
+        // реализовано через фрэйм, что даёт:
+        // отступ внутри ячейки, выравнивание по правому краю
+        QFrame *frame = new QFrame();
+        frame->setLayout(new QHBoxLayout);
+        frame->setFrameShape(QFrame::NoFrame);
+
+        QWidget *spacer = new QWidget();
+        spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        frame->layout()->addWidget(spacer);
+
+        QLabel *label = new QLabel(journal->changed.toString(tr("d MMM yyyy г., HH:mm")));
+        frame->layout()->addWidget(label);
+
+        QToolButton *btn = new QToolButton();
+        frame->layout()->addWidget(btn);
+
+        btn->setText(tr("открыть"));
+        btn->setObjectName(tr("%1%2").arg(buttonOpenName).arg(journal->getId()));
+        //btn->setMaximumWidth(76);
+        //btn->setLayoutDirection(Qt::RightToLeft);
+        btn->setIcon(QIcon(":/icons/16/open"));
+        btn->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+        btn->setCursor(Qt::PointingHandCursor);
+
+        connect(btn, SIGNAL(clicked()), this, SLOT(buttonOpen_clicked()));
+
+        item->setData(0, Qt::UserRole, journal->getId());
+
+        ui->treeJournals->setItemWidget(item, 4, frame);
+    }
+
+    // добавление строки "Новый журнал"
+    //if (!user->readonly)
+    //{
+        // иконка
+        QIcon icon(":/icons/new");
+
+        QTreeWidgetItem *item = new QTreeWidgetItem(QStringList() << tr("Новый журнал"));
+
+        ui->treeJournals->addTopLevelItem(item);
+
+        // название
+        QFont font = item->font(0);
+        font.setBold(true);
+        font.setUnderline(true);
+        item->setFont(0, font);
+        item->setIcon(0, icon);
+
+        // описание
+        font = item->font(3);
+        font.setItalic(true);
+        item->setFont(3, font);
+
+        // кнопка
+        QFrame *frame = new QFrame();
+        frame->setLayout(new QHBoxLayout);
+        frame->setFrameShape(QFrame::NoFrame);
+
+        QWidget *spacer = new QWidget();
+        spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        frame->layout()->addWidget(spacer);
+
+        QToolButton *btn = new QToolButton();
+        frame->layout()->addWidget(btn);
+
+        btn->setText(tr("создать"));
+        btn->setObjectName(tr("%1%2").arg(buttonOpenName).arg(0));
+        //btn->setLayoutDirection(Qt::RightToLeft);
+        btn->setIcon(QIcon(":/icons/16/plus"));
+        btn->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+        btn->setCursor(Qt::PointingHandCursor);
+
+        connect(btn, SIGNAL(clicked()), this, SLOT(buttonOpen_clicked()));
+
+        item->setData(0, Qt::UserRole, 0);
+
+        ui->treeJournals->setItemWidget(item, 4, frame);
+    //}
+
+    // выравнивание по содержимому
+    for (int j = 0; j < ui->treeJournals->header()->count(); j++)
+    {
+        ui->treeJournals->resizeColumnToContents(j);
+    }
+}
+
 // реакция на нажатие кнопки "Войти в систему"
 void MainWindow::on_buttonLogin_clicked()
 {
@@ -372,20 +499,26 @@ void MainWindow::on_buttonLogin_clicked()
     ui->movieLogin->show();
 
     // подключение
-    QString loginMessage;
-    if (journals->tryLogin(login, password, &loginMessage))
+    QString message;
+    if (journals->tryLogin(login, password, &message))
     {
-        changeMainMode(mmJournals);
-//        // получение классов
-//        if (getClasses(true))
-//        {
-//            // загрузка журналов
-//            loadJournals(true);
-//        }
+        if (journals->refreshJournals(&message))
+        {
+            // строим дерево журналов
+            fillTree();
+
+            // меняем страницу
+            changeMainMode(mmJournals);
+        }
+        else
+        {
+            ui->labelLoginError->setText(tr("Ошибка при получении журналов: ") + message);
+            ui->labelLoginError->show();
+        }
     }
     else
     {
-        ui->labelLoginError->setText(tr("Ошибка при подключении: ") + loginMessage);
+        ui->labelLoginError->setText(tr("Ошибка при подключении: ") + message);
         ui->labelLoginError->show();
     }
 

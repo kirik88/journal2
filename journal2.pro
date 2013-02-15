@@ -25,14 +25,16 @@ SOURCES += main.cpp\
     answerenums.cpp \
     loaderenums.cpp \
     enums.cpp \
-    userenums.cpp
+    userenums.cpp \
+    journallist.cpp
 
 HEADERS  += mainwindow.h \
     journals.h \
     journal.h \
     loader.h \
     user.h \
-    answer.h
+    answer.h \
+    journallist.h
 
 FORMS    += mainwindow.ui
 

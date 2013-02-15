@@ -75,6 +75,7 @@ private:
     void connectSignals();
     void changeMainMode(MainMode mode);
     void updateWidgets();
+    void fillTree();
 
 private slots:
     void on_buttonLogin_clicked();
