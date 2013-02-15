@@ -617,7 +617,7 @@ p, li { white-space: pre-wrap; }
          </column>
          <column>
           <property name="text">
-           <string>Учебный год</string>
+           <string>Учитель</string>
           </property>
          </column>
          <column>

@@ -32,7 +32,7 @@ Journal *Journals::getJournal(int id, bool reload)
     if (reload)
     {
         // загружаем журнал
-        Journal *loaded = loader->loadJournal(id);
+        Journal *loaded = 0;//loader->loadJournal(id);
 
         // добавляем журнал в список, если его ранее не было
         if (journal)

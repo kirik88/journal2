@@ -12,7 +12,7 @@ Loader::Loader(const QString &site, const QString &storage) : QObject(0)
     proxy = new QNetworkProxy();
     httpLoop = 0;
     lastAnswer = 0;
-    operation = IDDLE;
+    operation = loIDDLE;
 
     // отлавливаем сигналы
     QObject::connect(network, SIGNAL(finished(QNetworkReply *)), this, SLOT(httpFinished(QNetworkReply *)));
@@ -36,13 +36,13 @@ Loader::~Loader()
 
 // авторизоваться в системе
 // вернёт false, если операцию отменили
-bool Loader::login(bool loop, const QString &login, const QString &password)
+bool Loader::login(const QString &login, const QString &password, bool loop)
 {
-    if (operation != IDDLE)
+    if (operation != loIDDLE)
     {
         return false; //TODO:вызывать исключение
     }
-    operation = LOGINING;
+    operation = loLOGIN;
     httpAborted = false;
 
     // находим md5-хэш пароля
@@ -72,6 +72,50 @@ bool Loader::login(bool loop, const QString &login, const QString &password)
     }
 
     return true;
+}
+
+// остановить сетевую активность
+void Loader::abort()
+{
+    httpAborted = true;
+}
+
+// загрузить все доступные пользователю журналы
+bool Loader::loadJournals(bool full, bool loop)
+{
+    if (operation != loIDDLE)
+    {
+        return false; //TODO:вызывать исключение
+    }
+    operation = loJOURNALS;
+    httpAborted = false;
+
+    // формируем строку запроса
+    QUrl url = QString("http://%1/journals%2/xml").arg(site).arg(full ? "full" : "");
+
+    // запускаем
+    network->get(QNetworkRequest(url));
+
+    // если нужно, "замираем" до конца выполнения запроса
+    if (loop)
+    {
+        httpLoop = new QEventLoop();
+
+        int res = httpLoop->exec();
+
+        delete httpLoop;
+        httpLoop = 0;
+
+        return (res == 0);
+    }
+
+    return true;
+}
+
+// загрузить журнал по его идентификатору (id); загрузить полностью все данные журнала (full)
+bool Loader::loadJournal(int id, bool full, bool loop)
+{
+    return false;
 }
 
 // ответ сервера при логине
@@ -144,7 +188,7 @@ void Loader::httpFinished(QNetworkReply *reply)
         // выпускаем нужный сигнал
         switch (operation)
         {
-        case LOGINING:
+        case loLOGIN:
             // при успехе сохраняем данные пользователя
             if (lastAnswer->getCode() == OK)
             {
@@ -153,27 +197,18 @@ void Loader::httpFinished(QNetworkReply *reply)
             }
 
             emit loginFinished(lastAnswer);
-
             break;
+
+        case loJOURNALS:
+            emit journalsFinished(lastAnswer);
+            break;
+
         default:
             break;
         }
 
-        operation = IDDLE;
+        operation = loIDDLE;
 
         if (httpLoop) httpLoop->exit(0);
    }
-}
-
-
-// остановить сетевую активность
-void Loader::abort()
-{
-    httpAborted = true;
-}
-
-// загрузить журнал по его идентификатору (id); загрузить полностью все данные журнала (full)
-Journal *Loader::loadJournal(int id, bool full)
-{
-    return NULL;
 }

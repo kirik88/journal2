@@ -21,11 +21,12 @@ public:
     ~Loader();
 
     /* основные функции */
-    bool login(bool loop, const QString &login, const QString &password);
+    bool login(const QString &login, const QString &password, bool loop = true);
     void abort();
 
     /* функции для работы с журналами */
-    Journal *loadJournal(int id, bool full = true);
+    bool loadJournals(bool full = false, bool loop = true);
+    bool loadJournal(int id, bool full = true, bool loop = true);
 
     /* внешние данные */
     Answer *lastAnswer; // последний ответ; загрузчик сам занимается очисткой этой переменной
@@ -47,7 +48,8 @@ private:
 
 signals:
     /* сигналы по завершении */
-    void loginFinished(Answer *answer);
+    void loginFinished(Answer *answer); // после подключения к системе
+    void journalsFinished(Answer *answer); // после загрузки журналов
 
 private slots:
     /* ответы сервера */

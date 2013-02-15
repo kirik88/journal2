@@ -372,7 +372,7 @@ void MainWindow::on_buttonLogin_clicked()
     ui->movieLogin->show();
 
     // подключение
-    if (journals->loader->login(true, login, password))
+    if (journals->loader->login(login, password))
     {
         Answer *answer = journals->loader->lastAnswer;
 
