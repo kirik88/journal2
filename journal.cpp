@@ -2,6 +2,7 @@
 
 Journal::Journal(const QString &xml)
 {
+    id = -1;
     clear();
 
     // загружаем журнал
@@ -39,19 +40,31 @@ bool Journal::load(const QString &xml)
 // скопировать данные из другого журнала (from)
 void Journal::copyFrom(Journal *from)
 {
-    clear();
-
     this->name = from->name;
-    this->description = from->description;
+    this->classId = from->classId;
+    this->className = from->className;
+    this->teacherId = from->teacherId;
+    this->teacherName = from->teacherName;
+    this->isAuto = from->isAuto;
     this->changed = from->changed;
+    this->description = from->description;
+    this->archived = from->archived;
+    this->deleted = from->deleted;
 }
 
 // очистить данные журнала
 void Journal::clear()
 {
     name = "";
-    description = "";
+    classId = -1;
+    className = "";
+    teacherId = -1;
+    teacherName = "";
+    isAuto = false;
     changed = QDateTime::currentDateTime();
+    description = "";
+    archived = false;
+    deleted = false;
 }
 
 // вернуть идентификатор журнала
@@ -68,6 +81,7 @@ void Journal::parseNode(QDomNode node)
         QDomElement e = node.toElement(); // пробуем преобразовать узел в элемент
         if (!e.isNull())
         {
+            qDebug() << e.tagName();
             // для корневого узла
             if (e.tagName() == "journal")
             {
@@ -75,30 +89,42 @@ void Journal::parseNode(QDomNode node)
                 if (e.hasChildNodes()) parseNode(node.firstChild());
             }
             // для узлов-групп спускаемся ниже
-            else if (e.tagName() == "columns" || e.tagName() == "records" || e.tagName() == "values")
-            {
-                if (e.hasChildNodes()) parseNode(node.firstChild());
-            }
+            //else if (e.tagName() == "columns" || e.tagName() == "records" || e.tagName() == "values")
+            //{
+            //    if (e.hasChildNodes()) parseNode(node.firstChild());
+            //}
             // другие используем
             else if (e.tagName() == "name")
             {
                 this->name = e.text();
             }
-            else if (e.tagName() == "description")
+            else if (e.tagName() == "class")
             {
-                this->description = e.text();
+                this->classId = e.text().toInt();
+            }
+            else if (e.tagName() == "class_name")
+            {
+                this->className = e.text();
+            }
+            else if (e.tagName() == "teacher")
+            {
+                this->teacherId = e.text().toInt();
+            }
+            else if (e.tagName() == "teacher_name")
+            {
+                this->teacherName = e.text();
+            }
+            else if (e.tagName() == "auto")
+            {
+               this->isAuto = (e.text().toInt() == 1);
             }
             else if (e.tagName() == "changed")
             {
                 this->changed = QDateTime::fromString(e.text(), dateTimeParseString);
             }
-            /*else if (e.tagName() == "class")
+            else if (e.tagName() == "description")
             {
-                this->classId = e.text().toInt();
-            }
-            else if (e.tagName() == "year")
-            {
-                this->year = e.text().toInt();
+                this->description = e.text();
             }
             else if (e.tagName() == "archived")
             {
@@ -108,6 +134,7 @@ void Journal::parseNode(QDomNode node)
             {
                this->deleted = (e.text().toInt() == 1);
             }
+            /*
             else if (e.tagName() == "column")
             {
                 int type = (e.hasAttribute("type") ? e.attribute("type").toInt() : 0);

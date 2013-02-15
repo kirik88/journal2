@@ -14,8 +14,15 @@ public:
 
     /* основные данные журнала */
     QString name;
+    int classId;
+    QString className;
+    int teacherId;
+    QString teacherName;
+    bool isAuto;
+    QDateTime changed;
     QString description;
-    QDateTime changed; // дата и время последнего изменения
+    bool archived;
+    bool deleted;
 
     /* основные функции */
     bool load(QFile *file);

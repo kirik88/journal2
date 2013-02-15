@@ -344,17 +344,16 @@ void MainWindow::fillTree()
         Journal *journal = journals->journals->at(i);
 
         // в зависимости от прав на запись разная иконка
-        //QIcon icon(journal->deleted ? ":/icons/delete" : (journal->archived ? ":/icons/journal_archived" :
-        //        (!user || user->readonly || !journal || journal->readonly ? ":/icons/journal" : ":/icons/journal_write")
-        //        ));
-        QIcon icon(":/icons/journal_write");
+        QIcon icon(journal->deleted ? ":/icons/delete" : (journal->archived ? ":/icons/journal_archived" :
+                (/*!user || user->readonly || !journal || journal->readonly ? ":/icons/journal" : */":/icons/journal_write")
+                ));
 
         QTreeWidgetItem *item = new QTreeWidgetItem(
                 QStringList()
-                <<  tr("%1").arg(journal->name)
-                << ""//(journal->classId > 0 ? classes->classById(journal->classId)->name : "")
-                << ""//(journal->year > 0 ? tr("%1-%2").arg(journal->year).arg(journal->year+1) : "")
-                <<  journal->description);
+                << tr("%1").arg(journal->name)
+                << journal->className
+                << journal->teacherName
+                << journal->description);
 
         ui->treeJournals->addTopLevelItem(item);
 
