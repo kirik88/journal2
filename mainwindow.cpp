@@ -72,7 +72,7 @@ void MainWindow::prepareApplication()
     ui->treeJournals->header()->setSectionsMovable(false);
 
     // будем отлавливать события окна
-    //this->installEventFilter(this);
+    this->installEventFilter(this);
 
     // загрузка настроек
     readSettings();
@@ -103,7 +103,13 @@ void MainWindow::readSettings()
     if (settings->value("maximized", false).toBool()) this->showMaximized();
     settings->endGroup();
 
-    // имя пользователя и пароль (если сохранён)
+    // данные хранилища
+    settings->beginGroup("server");
+    site    = settings->value("http"   ).toString();
+    storage = settings->value("storage").toString();
+    settings->endGroup();
+
+    // данные авторизации (в том числе пароль, если сохранён)
     settings->beginGroup("login");
     if (settings->contains("login"))
     {
@@ -112,21 +118,15 @@ void MainWindow::readSettings()
     }
     settings->endGroup();
 
-    // прокси-сервер
-    settings->beginGroup("proxy");
-    /*useProxy      =   settings->value("use",      false).toBool();
+    // данные прокси-сервера
+    /*settings->beginGroup("proxy");
+    useProxy      =   settings->value("use",      false).toBool();
     proxy.setHostName(settings->value("hostName", "").toString());
     proxy.setPort    (settings->value("port",      0).toInt());
     proxy.setUser    (settings->value("user",     "").toString());
     proxy.setPassword(settings->value("password", "").toString());
-    proxySavePwd  =   settings->contains("user");*/
-    settings->endGroup();
-
-    // сервер с журналами
-    settings->beginGroup("server");
-    site    = settings->value("http"   ).toString();
-    storage = settings->value("storage").toString();
-    settings->endGroup();
+    proxySavePwd  =   settings->contains("user");
+    settings->endGroup();*/
 
     // другие настройки
     settings->beginGroup("options");
@@ -158,6 +158,72 @@ void MainWindow::readSettings()
         ui->editLogin->setText(login);
         ui->editPassword->setText(password);
     }
+}
+
+// процедура записи настроек
+void MainWindow::writeSettings(Setting setting)
+{
+    /* настройки пользователя */
+    QSettings *settings = new QSettings();
+
+    // состояние главного окна
+    if (setting == sAll || setting == sWindow)
+    {
+        settings->beginGroup("mainwindow");
+        settings->setValue("maximized", this->isMaximized());
+        if (!this->isMaximized())
+        {
+            settings->setValue("size", this->size());
+            settings->setValue("pos",  this->pos());
+        }
+        settings->endGroup();
+    }
+
+    // данные хранилища
+    if (setting == sAll || setting == sStorage)
+    {
+        if (journals && journals->loader)
+        {
+            settings->beginGroup("server");
+            settings->setValue("http", journals->loader->site);
+            settings->setValue("storage", journals->loader->storage);
+            settings->endGroup();
+        }
+    }
+
+    // данные авторизации
+    if (setting == sAll || setting == sLogin)
+    {
+        if (journals && journals->loader && journals->loader->user)
+        {
+            settings->beginGroup("login");
+            settings->setValue("login", journals->loader->user->login);
+            //settings->setValue("password", journals->loader->user->password);
+            settings->endGroup();
+        }
+    }
+
+    // данные прокси-сервера
+    if (setting == sAll || setting == sProxy)
+    {
+        /*settings->beginGroup("proxy");
+        settings->setValue("use", useProxy);
+        settings->setValue("hostName", proxy.hostName());
+        settings->setValue("port", proxy.port());
+        if (proxySavePwd)
+        {
+            settings->setValue("user", proxy.user());
+            settings->setValue("password", proxy.password());
+        }
+        else
+        {
+            settings->remove("user");
+            settings->remove("password");
+        }
+        settings->endGroup();*/
+    }
+
+    delete settings;
 }
 
 // установка сигналов
@@ -331,6 +397,29 @@ void MainWindow::updateWidgets()
     if (labelRefresh->parentWidget())
         labelRefresh->move(labelRefresh->parentWidget()->contentsRect().width() - labelRefresh->width() - labelRefresh->height(),
                 labelRefresh->parentWidget()->contentsRect().height() - labelRefresh->height() * 1.5);
+}
+
+// реакция на закрытие приложения
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    // запрос на сохранение
+    /*if (!reply)
+    {
+        if (journal && !checkSaveJournal(tr("Сохранить изменения в журнале «%1» перед закрытием?").arg(journal->title)))
+            event->ignore();
+    }*/
+
+    // сохраняем состояние окна
+    writeSettings(sWindow);
+
+    // освобождение ресурсов
+    /*if (reply)
+    {
+        reply->deleteLater();
+        reply = 0;
+    }
+    if (httpLoop) httpLoop->exit(1);
+    glass->remove();*/
 }
 
 // заполнение дерева журналов
@@ -511,6 +600,9 @@ void MainWindow::on_buttonLogin_clicked()
 
             // меняем страницу
             changeMainMode(mmJournals);
+
+            // сохраняем настройки авторизации
+            writeSettings(sLogin);
         }
         else
         {
@@ -548,9 +640,3 @@ void MainWindow::on_buttonExit_clicked()
 {
     this->close();
 }
-
-/*void MainWindow::loginFinished(Answer *answer)
-{
-    QMessageBox::warning(this, tr("Debug message"), answer->getResult());
-}*/
-

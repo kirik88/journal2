@@ -18,6 +18,7 @@ public:
 
     /* основные данные */
     JournalList *journals; // список журналов
+    Loader *loader; // загрузчик
 
     /* основные функции */
     bool tryLogin(const QString &login, const QString &password, QString *message);
@@ -31,7 +32,6 @@ public:
 
 private:
     /* внутренние данные */
-    Loader *loader; // загрузчик
 
 signals:
 

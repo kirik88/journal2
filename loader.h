@@ -22,6 +22,9 @@ public:
 
     /* основные данные */
     Answer *lastAnswer; // последний ответ; загрузчик сам занимается очисткой этой переменной
+    QString site; // путь к сайту
+    QString storage; // наименование хранилища данных
+    User *user; // пользователь, который осуществляет работу с загрузчиком
 
     /* основные функции */
     bool login(const QString &login, const QString &password, bool loop = true);
@@ -33,9 +36,6 @@ public:
 
 private:
     /* внутренние данные */
-    QString site; // путь к сайту
-    QString storage; // наименование хранилища данных
-    User *user; // пользователь, который осуществляет работу с загрузчиком
     LoaderOperation operation; // текущая операция загрузчика
 
     /* переменные для работы с сетью */

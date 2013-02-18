@@ -72,6 +72,7 @@ private:
     /* основные функции приложения */
     void prepareApplication();
     void readSettings();
+    void writeSettings(Setting setting);
     void connectSignals();
     void changeMainMode(MainMode mode);
     void updateWidgets();
@@ -80,7 +81,9 @@ private:
 private slots:
     void on_buttonLogin_clicked();
     void on_buttonExit_clicked();
-    //void loginFinished(Answer *answer);
+
+protected:
+    void closeEvent(QCloseEvent *event);
 
 };
 
