@@ -7,7 +7,7 @@ int main(int argc, char *argv[])
 
     // информация о программе
     a.setOrganizationName("kirik88");
-    a.setApplicationName("journal");
+    a.setApplicationName("journal2");
     a.setApplicationVersion(appVersion);
 
     // загрузка русского перевода стандартных надписей

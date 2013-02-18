@@ -172,6 +172,8 @@ void MainWindow::connectSignals()
     /* подключение к системе */
     connect(ui->buttonLoginExit, SIGNAL(clicked()),
             this, SLOT(on_buttonExit_clicked()));
+    connect(ui->editLogin, SIGNAL(returnPressed()),
+            this, SLOT(on_buttonLogin_clicked()));
     connect(ui->editPassword, SIGNAL(returnPressed()),
             this, SLOT(on_buttonLogin_clicked()));
 
@@ -225,7 +227,8 @@ void MainWindow::changeMainMode(MainMode mode)
         }
         else
         {
-            ui->editPassword->setFocus();
+            if (ui->editLogin->text() == "") ui->editLogin->setFocus();
+            else ui->editPassword->setFocus();
         }
 
         break;
