@@ -136,6 +136,10 @@ bool Journals::getJournal(int id, Journal *&journal, QString *message, bool relo
 
             delete tmp;
         }
+        else // отменили
+        {
+            return false;
+        }
     }
 
     journal = result;

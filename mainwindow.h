@@ -10,6 +10,7 @@
 #include <QMovie>
 #include <QCloseEvent>
 
+#include "glass.h"
 #include "journals.h"
 #include "journaltablewidget.h"
 
@@ -60,7 +61,7 @@ private:
     JournalTableWidget *tableJournal; // таблица журнала
 
     /* дополнительные */
-    //Glass *glass; // затемнение окна
+    Glass *glass; // затемнение окна
     QLabel *labelBack; // надпись-кнопка "Вернуться к журналу"
     QLabel *labelRefresh; // надпись-кнопка "Обновить"
     QMovie *loading; // "крутящиеся колёсики", анимация загрузки

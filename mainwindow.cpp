@@ -26,6 +26,7 @@ MainWindow::~MainWindow()
     delete tableJournal;
     delete loading;
     if (journals) delete journals;
+    delete glass;
 }
 
 // подготовка приложения при первом запуске
@@ -33,7 +34,7 @@ void MainWindow::prepareApplication()
 {
     // инициализируем внутренние переменные
     commonIni = QString("%1/%2.ini").arg(QApplication::applicationDirPath()).arg(QApplication::applicationName());
-    //glass = new Glass();
+    glass = new Glass();
     journals = 0;
     currentJournal = 0;
 
@@ -738,13 +739,13 @@ bool MainWindow::checkSaveJournal(const QString &text, bool allowSave)
         }
 
         // устанавливаем затемнение
-        //if (useDialogGlass) glass->install(this);
+        if (useDialogGlass) glass->install(this);
 
         // показываем диалоговое окно
         int result = question->exec();
 
         // убираем затемнение
-        //glass->remove();
+        if (useDialogGlass) glass->remove();
 
         switch (result)
         {
@@ -892,6 +893,9 @@ void MainWindow::buttonOpen_clicked()
         if (currentJournal && !checkSaveJournal(tr("Сохранить изменения в журнале «%1» перед открытием выбранного?").arg(currentJournal->getName())))
             return;
 
+        // затемняем окно
+        glass->install(this, tr("Загрузка журнала ..."));
+
         // загружаем журнал
         QString message;
         if (journals->getJournal(id, currentJournal, &message))
@@ -905,10 +909,18 @@ void MainWindow::buttonOpen_clicked()
             // переключение страницы
             changeMainMode(mmJournal);
         }
-        else
+
+        // убираем затемнение в случае, если оно не требуется для диалоговых окон
+        if (useDialogGlass) glass->hide();
+        else glass->remove();
+
+        if (message != "")
         {
             QMessageBox::critical(this, tr("Загрузка журнала"),
                 tr("Ошибка при загрузке журнала:\n%1").arg(message));
         }
+
+        // убираем затемнение
+        glass->remove();
     }
 }
