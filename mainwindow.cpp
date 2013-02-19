@@ -23,19 +23,21 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete ui;
+    delete tableJournal;
+    delete loading;
     if (journals) delete journals;
 }
 
 // подготовка приложения при первом запуске
 void MainWindow::prepareApplication()
 {
-    // инициализируем внутренних переменных
+    // инициализируем внутренние переменные
     commonIni = QString("%1/%2.ini").arg(QApplication::applicationDirPath()).arg(QApplication::applicationName());
     //glass = new Glass();
     journals = 0;
     currentJournal = 0;
 
-    // инициализируем надписей
+    // инициализируем надписи
     labelBackText = tr("« Вернуться к журналу");
     labelRefreshText = tr("Обновить");
     markNone = tr("н");
@@ -47,6 +49,19 @@ void MainWindow::prepareApplication()
     // надпись-кнопка "Обновить"
     labelRefresh = new QLabel(QString("<html><a href=\"journal\">%1</a></html>").arg(labelRefreshText));
     labelRefresh->hide();
+
+    // таблица журнала
+    tableJournal = new JournalTableWidget(ui->tableJournal->parentWidget());
+    delete ui->tableJournal;
+    tableJournal->setMouseTracking(true);
+    tableJournal->setContextMenuPolicy(Qt::CustomContextMenu);
+    tableJournal->setDragDropOverwriteMode(false);
+    tableJournal->setSelectionMode(QAbstractItemView::SingleSelection);
+    tableJournal->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+    tableJournal->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+    tableJournal->setGridStyle(Qt::DotLine);
+    tableJournal->horizontalHeader()->setMinimumSectionSize(17);
+    tableJournal->parentWidget()->layout()->addWidget(tableJournal);
 
     // панель инструментов
     ui->toolBar->addWidget(ui->buttonJournals);
@@ -63,6 +78,10 @@ void MainWindow::prepareApplication()
     ui->toolBar->addWidget(ui->buttonAbout);
     ui->toolBar->addWidget(ui->buttonExit);
     delete ui->frameToolBar;
+
+    // анимация при авторизации
+    loading = new QMovie(":/animations/loading_min");
+    ui->movieLogin->setMovie(loading);
 
     // скрываем ненужные пока элементы подключения
     ui->labelLoginError->hide();
@@ -239,28 +258,30 @@ void MainWindow::connectSignals()
     /* подключение к системе */
     connect(ui->buttonLoginExit, SIGNAL(clicked()),
             this, SLOT(on_buttonExit_clicked()));
+    connect(ui->buttonLoginCancel, SIGNAL(clicked()),
+            this, SLOT(on_buttonLoginCancel_clicked()));
     connect(ui->editLogin, SIGNAL(returnPressed()),
             this, SLOT(on_buttonLogin_clicked()));
     connect(ui->editPassword, SIGNAL(returnPressed()),
             this, SLOT(on_buttonLogin_clicked()));
 
 //    // говорим, что у заголовков тоже есть контекстное меню
-//    ui->tableJournal->horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
-//    ui->tableJournal->verticalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
+//    tableJournal->horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
+//    tableJournal->verticalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
 
 //    /* таблица */
 //    // колонки
-//    connect(ui->tableJournal->horizontalHeader(), SIGNAL(sectionClicked(int)),
+//    connect(tableJournal->horizontalHeader(), SIGNAL(sectionClicked(int)),
 //            this, SLOT(tableJournal_columnClicked(int)));
-//    connect(ui->tableJournal->horizontalHeader(), SIGNAL(customContextMenuRequested(const QPoint &)),
+//    connect(tableJournal->horizontalHeader(), SIGNAL(customContextMenuRequested(const QPoint &)),
 //            this, SLOT(tableJournal_columnContext(const QPoint &)));
 //    // записи
-//    connect(ui->tableJournal->verticalHeader(), SIGNAL(sectionClicked(int)),
+//    connect(tableJournal->verticalHeader(), SIGNAL(sectionClicked(int)),
 //            this, SLOT(tableJournal_rowClicked(int)));
-//    connect(ui->tableJournal->verticalHeader(), SIGNAL(customContextMenuRequested(const QPoint &)),
+//    connect(tableJournal->verticalHeader(), SIGNAL(customContextMenuRequested(const QPoint &)),
 //            this, SLOT(tableJournal_rowContext(const QPoint &)));
 //    // значения
-//    connect(ui->tableJournal, SIGNAL(customContextMenuRequested(const QPoint &)),
+//    connect(tableJournal, SIGNAL(customContextMenuRequested(const QPoint &)),
 //            this, SLOT(tableJournal_showContextMenu()));
 }
 
@@ -370,7 +391,7 @@ void MainWindow::changeMainMode(MainMode mode)
         ui->buttonTools->setChecked(false);
         ui->buttonTools->setCheckable(false);
 
-        ui->tableJournal->setFocus();
+        tableJournal->setFocus();
 
         break;
 
@@ -433,17 +454,11 @@ void MainWindow::closeEvent(QCloseEvent *event)
         event->ignore();
     }
 
+    // прерываем все операции
+    if (journals) journals->abort();
+
     // сохраняем состояние окна
     writeSettings(sWindow);
-
-    // освобождение ресурсов
-    /*if (reply)
-    {
-        reply->deleteLater();
-        reply = 0;
-    }
-    if (httpLoop) httpLoop->exit(1);
-    glass->remove();*/
 }
 
 // заполнение дерева журналов
@@ -574,50 +589,6 @@ void MainWindow::fillTree()
     }
 }
 
-// очищаем таблицу
-void MainWindow::clearTable()
-{
-    // колонки и строки
-    ui->tableJournal->clear();
-    ui->tableJournal->setColumnCount(0);
-    ui->tableJournal->setRowCount(0);
-}
-
-// заполняем заголовки таблицы данными журнала
-void MainWindow::fillTable()
-{
-    // очищаем
-    clearTable();
-
-    // защита от дурака
-    if (!currentJournal) return;
-
-    // колонки и строки
-    ui->tableJournal->setColumnCount(currentJournal->columns.count());
-    //ui->tableJournal->setRowCount(journal->recordsCount());
-
-    // заголовки колонок
-    for (int col = 0; col < currentJournal->columns.count(); col++)
-    {
-        Column *column = currentJournal->columns.at(col);
-
-        QTableWidgetItem *col_item = new QTableWidgetItem(column->getName());
-        col_item->setData(Qt::UserRole, column->getId()); // храним идентификатор колонки
-        ui->tableJournal->setHorizontalHeaderItem(col, col_item);
-    }
-
-    // текст записей
-    //for (int rec = 0; rec < journal->recordsCount(); rec++)
-    //{
-    //    QTableWidgetItem *rec_item = new QTableWidgetItem(journal->record(rec)->text);
-    //    rec_item->setData(Qt::UserRole, journal->record(rec)->id); // храним идентификатор записи
-    //    ui->tableJournal->setVerticalHeaderItem(rec, rec_item);
-    //}
-
-    // значения
-    //fillValues();
-}
-
 // проверка, сохранялся ли журнал в выводом сообщения и автоматическим сохранением
 bool MainWindow::checkSaveJournal(const QString &text, bool allowSave)
 {
@@ -707,13 +678,11 @@ void MainWindow::on_buttonLogin_clicked()
     // блокировка кнопок
     ui->frameLoginEdits->setEnabled(false);
 
-    QApplication::processEvents();
-
     // анимация
-    QMovie *movie = new QMovie(":/animations/loading_min");
-    ui->movieLogin->setMovie(movie);
-    movie->start();
+    ui->movieLogin->movie()->start();
     ui->movieLogin->show();
+
+    QApplication::processEvents();
 
     // подключение
     QString message;
@@ -732,14 +701,22 @@ void MainWindow::on_buttonLogin_clicked()
         }
         else
         {
-            ui->labelLoginError->setText(tr("Ошибка при получении журналов: ") + message);
-            ui->labelLoginError->show();
+            // если сообщения нет - операцию отменили
+            if (message != "")
+            {
+                ui->labelLoginError->setText(tr("Ошибка при получении журналов: ") + message);
+                ui->labelLoginError->show();
+            }
         }
     }
     else
     {
-        ui->labelLoginError->setText(tr("Ошибка при подключении: ") + message);
-        ui->labelLoginError->show();
+        // если сообщения нет - операцию отменили
+        if (message != "")
+        {
+            ui->labelLoginError->setText(tr("Ошибка при подключении: ") + message);
+            ui->labelLoginError->show();
+        }
     }
 
     // снова отображаем кнопки
@@ -750,8 +727,6 @@ void MainWindow::on_buttonLogin_clicked()
     // останавливаем анимацию
     ui->movieLogin->movie()->stop();
     ui->movieLogin->hide();
-    ui->movieLogin->setMovie(0);
-    delete movie;
 
     // разблокировка кнопок
     ui->frameLoginEdits->setEnabled(true);
@@ -759,6 +734,14 @@ void MainWindow::on_buttonLogin_clicked()
     // переключение фокуса
     ui->editPassword->clear();
     ui->editPassword->setFocus();
+}
+
+// реакция на нажатие кнопки "Отмена" при подключении к системе
+void MainWindow::on_buttonLoginCancel_clicked()
+{
+    ui->buttonLoginCancel->setEnabled(false);
+
+    journals->abort();
 }
 
 // реакция на нажатие кнопки "Выйти"
@@ -792,8 +775,8 @@ void MainWindow::buttonOpen_clicked()
         QString message;
         if (journals->getJournal(id, currentJournal, &message))
         {
-            // заполнение таблицы
-            fillTable();
+            // выводим данные журнала
+            tableJournal->setJournal(currentJournal);
 
             // помечаем, что журнал не изменялся
             currentJournal->isChanged = false;
@@ -806,7 +789,5 @@ void MainWindow::buttonOpen_clicked()
             QMessageBox::critical(this, tr("Загрузка журнала"),
                 tr("Ошибка при загрузке журнала:\n%1").arg(message));
         }
-
-        //loadJournal();
     }
 }

@@ -11,6 +11,7 @@
 #include <QCloseEvent>
 
 #include "journals.h"
+#include "journaltablewidget.h"
 
 #include "enums.cpp"
 
@@ -55,11 +56,17 @@ private:
     Journals *journals;
     Journal *currentJournal; // текущий выбранный журнал
 
-    /* дополнительно */
-    bool useDialogGlass; // использовать затемнение при выводе диалоговых окон
+    /* основные виджеты */
+    JournalTableWidget *tableJournal; // таблица журнала
+
+    /* дополнительные */
     //Glass *glass; // затемнение окна
     QLabel *labelBack; // надпись-кнопка "Вернуться к журналу"
     QLabel *labelRefresh; // надпись-кнопка "Обновить"
+    QMovie *loading; // "крутящиеся колёсики", анимация загрузки
+
+    /* вспомогательные данные */
+    bool useDialogGlass; // использовать затемнение при выводе диалоговых окон
     MainMode currentMode;
 
     /* панель инструментов */
@@ -79,13 +86,12 @@ private:
     void changeMainMode(MainMode mode);
     void updateWidgets();
     void fillTree();
-    void clearTable();
-    void fillTable();
     bool checkSaveJournal(const QString &text, bool allowSave = true);
 
 private slots:
     /* кнопки режима подключения к системе */
     void on_buttonLogin_clicked();
+    void on_buttonLoginCancel_clicked();
 
     /* кнопки на панели инструментов */
     void on_buttonExit_clicked();

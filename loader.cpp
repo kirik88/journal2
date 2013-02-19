@@ -13,9 +13,10 @@ Loader::Loader(const QString &site, const QString &storage) : QObject(0)
     httpLoop = 0;
     lastAnswer = 0;
     operation = loIddle;
+    reply = 0;
 
     // отлавливаем сигналы
-    QObject::connect(network, SIGNAL(finished(QNetworkReply *)), this, SLOT(httpFinished(QNetworkReply *)));
+    QObject::connect(network, SIGNAL(finished(QNetworkReply *)), this, SLOT(httpFinished()));
     /*connect(reply, SIGNAL(readyRead()),
             this, SLOT(httpReadyRead()));
     connect(reply, SIGNAL(downloadProgress(qint64, qint64)),
@@ -32,6 +33,7 @@ Loader::~Loader()
     if (proxy) delete proxy;
     if (httpLoop) delete httpLoop;
     if (lastAnswer) delete lastAnswer;
+    if (reply) delete reply;
 }
 
 // авторизоваться в системе
@@ -56,7 +58,7 @@ bool Loader::login(const QString &login, const QString &password, bool loop)
     QUrl url = QString("http://%1/login/%2/%3/%4/xml").arg(site).arg(storage).arg(login).arg(hash);
 
     // запускаем
-    network->get(QNetworkRequest(url));
+    reply = network->get(QNetworkRequest(url));
 
     // если нужно, "замираем" до конца выполнения запроса
     if (loop)
@@ -68,6 +70,8 @@ bool Loader::login(const QString &login, const QString &password, bool loop)
         delete httpLoop;
         httpLoop = 0;
 
+        operation = loIddle;
+
         return (res == 0);
     }
 
@@ -78,6 +82,7 @@ bool Loader::login(const QString &login, const QString &password, bool loop)
 void Loader::abort()
 {
     httpAborted = true;
+    if (reply) reply->abort();
 }
 
 // загрузить все доступные пользователю журналы
@@ -95,7 +100,7 @@ bool Loader::loadJournals(bool full, bool loop)
     QUrl url = QString("http://%1/journals%2/xml").arg(site).arg(full ? "full" : "");
 
     // запускаем
-    network->get(QNetworkRequest(url));
+    reply = network->get(QNetworkRequest(url));
 
     // если нужно, "замираем" до конца выполнения запроса
     if (loop)
@@ -106,6 +111,8 @@ bool Loader::loadJournals(bool full, bool loop)
 
         delete httpLoop;
         httpLoop = 0;
+
+        operation = loIddle;
 
         return (res == 0);
     }
@@ -128,7 +135,7 @@ bool Loader::loadJournal(int id, bool loop)
     QUrl url = QString("http://%1/journal/%2/xml").arg(site).arg(id);
 
     // запускаем
-    network->get(QNetworkRequest(url));
+    reply = network->get(QNetworkRequest(url));
 
     // если нужно, "замираем" до конца выполнения запроса
     if (loop)
@@ -140,6 +147,8 @@ bool Loader::loadJournal(int id, bool loop)
         delete httpLoop;
         httpLoop = 0;
 
+        operation = loIddle;
+
         return (res == 0);
     }
 
@@ -147,7 +156,7 @@ bool Loader::loadJournal(int id, bool loop)
 }
 
 // ответ сервера при логине
-void Loader::httpFinished(QNetworkReply *reply)
+void Loader::httpFinished()
 {
     // удаляем предыдущий ответ
     if (lastAnswer)
@@ -238,8 +247,6 @@ void Loader::httpFinished(QNetworkReply *reply)
         default:
             break;
         }
-
-        operation = loIddle;
 
         if (httpLoop) httpLoop->exit(0);
    }

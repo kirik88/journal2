@@ -27,7 +27,8 @@ SOURCES += main.cpp\
     enums.cpp \
     userenums.cpp \
     journallist.cpp \
-    column.cpp
+    column.cpp \
+    journaltablewidget.cpp
 
 HEADERS  += mainwindow.h \
     journals.h \
@@ -36,7 +37,8 @@ HEADERS  += mainwindow.h \
     user.h \
     answer.h \
     journallist.h \
-    column.h
+    column.h \
+    journaltablewidget.h
 
 FORMS    += mainwindow.ui
 

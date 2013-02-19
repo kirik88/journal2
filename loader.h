@@ -42,6 +42,7 @@ private:
     QNetworkAccessManager *network;
     QNetworkProxy *proxy;
     QEventLoop *httpLoop;
+    QNetworkReply *reply;
 
     /* флаги */
     bool httpAborted; // признак остановки сетевой активности
@@ -54,7 +55,7 @@ signals:
 
 private slots:
     /* ответы сервера */
-    void httpFinished(QNetworkReply *reply);
+    void httpFinished();
 
 };
 

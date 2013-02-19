@@ -22,6 +22,7 @@ public:
 
     /* основные функции */
     bool tryLogin(const QString &login, const QString &password, QString *message);
+    void abort();
 
     /* функции работы с журналами */
     bool refreshJournals(QString *message);

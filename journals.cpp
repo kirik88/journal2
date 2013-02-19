@@ -11,6 +11,7 @@ Journals::Journals(Loader *loader) : QObject(0)
 
 Journals::~Journals()
 {
+    abort();
     delete loader;
     if (journals) delete journals;
 }
@@ -37,6 +38,12 @@ bool Journals::tryLogin(const QString &login, const QString &password, QString *
     }
 
     return false;
+}
+
+// прервать выполнение длительной операции
+void Journals::abort()
+{
+    loader->abort();
 }
 
 // обновить/загрузить список журналов
