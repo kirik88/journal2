@@ -6,7 +6,7 @@ Journals::Journals(Loader *loader) : QObject(0)
     this->loader = loader;
 
     // инициализируем переменные
-    journals = 0;
+    journals = new JournalList();
 }
 
 Journals::~Journals()
@@ -63,9 +63,13 @@ bool Journals::refreshJournals(QString *message)
             return false;
         };
 
-        if (journals) delete journals;
+        // формируем на основе ответа список журналов
+        JournalList *tmp = new JournalList(answer->getValue("journals"));
 
-        journals = new JournalList(answer->getValue("journals"));
+        // добавляем журналы с список
+        for (int i = 0; tmp->count() > i; i++) journals->appendRefresh(tmp->at(i));
+
+        delete tmp;
 
         return true;
     }

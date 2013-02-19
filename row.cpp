@@ -10,6 +10,8 @@ Row::Row(const QString &xml)
 
 Row::Row(Row *other)
 {
+    this->id = other->id;
+
     this->name = other->name;
 }
 

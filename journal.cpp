@@ -9,6 +9,13 @@ Journal::Journal(const QString &xml)
     if (xml != "") load(xml);
 }
 
+Journal::Journal(Journal *other)
+{
+    this->id = other->id;
+
+    copyFrom(other);
+}
+
 Journal::~Journal()
 {
     clear();
@@ -57,8 +64,8 @@ void Journal::copyFrom(Journal *from)
     this->isAuto = from->isAuto;
     this->changed = from->changed;
     this->description = from->description;
-    this->archived = from->archived;
-    this->deleted = from->deleted;
+    this->isArchived = from->isArchived;
+    this->isDeleted = from->isDeleted;
     this->isChanged = from->isChanged;
     this->isNew = from->isNew;
 
@@ -88,8 +95,8 @@ void Journal::clear()
     isAuto = false;
     changed = QDateTime::currentDateTime();
     description = "";
-    archived = false;
-    deleted = false;
+    isArchived = false;
+    isDeleted = false;
     isChanged = false;
     isNew = false;
 
@@ -188,11 +195,11 @@ void Journal::parseNode(QDomNode node)
             }
             else if (e.tagName() == "archived")
             {
-               this->archived = (e.text().toInt() == 1);
+               this->isArchived = (e.text().toInt() == 1);
             }
             else if (e.tagName() == "deleted")
             {
-               this->deleted = (e.text().toInt() == 1);
+               this->isDeleted = (e.text().toInt() == 1);
             }
             // "вытаскиваем" колонки
             else if (e.tagName() == "column")

@@ -18,7 +18,7 @@
 
 // версия приложения
 static QString majorVersion = "0";
-static QString minorVersion = "01";
+static QString minorVersion = "1";
 static QString appVersion = majorVersion + "." + minorVersion;
 
 // идентификатор формы по-умолчанию при отправлении файла
@@ -90,6 +90,7 @@ private:
     void updateWindowTitle();
     void fillTree();
     bool checkSaveJournal(const QString &text, bool allowSave = true);
+    bool checkAllowEditJournal(Journal *journal);
 
 private slots:
     /* кнопки режима подключения к системе */
@@ -97,10 +98,19 @@ private slots:
     void on_buttonLoginCancel_clicked();
 
     /* кнопки на панели инструментов */
+    void on_buttonJournals_clicked();
+    void on_buttonJournal_clicked();
+    void on_buttonRefresh_clicked();
+    void on_buttonAbout_clicked();
     void on_buttonExit_clicked();
 
     /* кнопки дерева журналов */
+    void labelBack_clicked(); // надпись-кнопка "Вернуться к журналу"
+    void labelRefresh_clicked(); // надпись-кнопка "Обновить"
     void buttonOpen_clicked(); // кнопка "Открыть"
+
+    /* таблица данных журнала */
+    void journal_changed();
 
 protected:
     void closeEvent(QCloseEvent *event);

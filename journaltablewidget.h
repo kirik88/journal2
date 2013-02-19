@@ -23,6 +23,8 @@ private:
     void fillAll();
     
 signals:
+    /* сигналы при работе с журналов */
+    void journalChanged(); // журнал изменился
     
 public slots:
     

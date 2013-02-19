@@ -49,9 +49,9 @@ private:
 
 signals:
     /* сигналы по завершении */
-    void on_login_finished(Answer *answer); // после подключения к системе
-    void on_journals_finished(Answer *answer); // после загрузки журналов
-    void on_journal_finished(Answer *answer); // после загрузки журнала
+    void loginFinished(Answer *answer); // после подключения к системе
+    void journalsFinished(Answer *answer); // после загрузки журналов
+    void journalFinished(Answer *answer); // после загрузки журнала
 
 private slots:
     /* ответы сервера */

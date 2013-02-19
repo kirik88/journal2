@@ -32,7 +32,6 @@ public:
     void clear();
 
 private:
-    /* внутренние данные */
 
 signals:
 

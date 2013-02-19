@@ -13,6 +13,8 @@ Column::Column(const QString &xml)
 
 Column::Column(Column *other)
 {
+    this->id = other->id;
+
     this->name = other->name;
     this->date = other->date;
     this->isVisible = other->isVisible;

@@ -11,10 +11,15 @@
 class JournalList : public QList<Journal *>
 {
 public:
-    JournalList(const QString &xml);
+    JournalList(const QString &xml = "");
     ~JournalList();
 
+    /* основные функции */
+    bool load(QFile *file);
+    bool load(const QString &xml);
+
     /* функции для работы со списком */
+    void appendRefresh(Journal *journal);
     void clear();
 
 private:

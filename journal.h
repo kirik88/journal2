@@ -11,6 +11,7 @@ class Journal
 {
 public:
     Journal(const QString &xml);
+    Journal(Journal *other);
     ~Journal();
 
     /* основные данные журнала */
@@ -24,8 +25,8 @@ public:
     bool isAuto;
     QDateTime changed;
     QString description;
-    bool archived;
-    bool deleted;
+    bool isArchived;
+    bool isDeleted;
     bool isChanged; // журнал изменялся с момента загрузки
     bool isNew; // журнал новосозданный
 

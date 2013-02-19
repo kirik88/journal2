@@ -234,15 +234,15 @@ void Loader::httpFinished()
                 user->userType = UserType(lastAnswer->getValue("user_type").toInt());
             }
 
-            emit on_login_finished(lastAnswer);
+            emit loginFinished(lastAnswer);
             break;
 
         case loJournals:
-            emit on_journals_finished(lastAnswer);
+            emit journalsFinished(lastAnswer);
             break;
 
         case loJournal:
-            emit on_journal_finished(lastAnswer);
+            emit journalFinished(lastAnswer);
             break;
 
         default:

@@ -351,21 +351,25 @@ void MainWindow::writeSettings(Setting setting)
 // установка сигналов
 void MainWindow::connectSignals()
 {
-//    /* общее */
-//    connect(labelBack, SIGNAL(linkActivated(const QString &)),
-//            this, SLOT(labelBack_clicked()));
-//    connect(labelRefresh, SIGNAL(linkActivated(const QString &)),
-//            this, SLOT(labelRefresh_clicked()));
+    /* общее */
+    QObject::connect(labelBack, SIGNAL(linkActivated(const QString &)),
+            this, SLOT(labelBack_clicked()));
+    QObject::connect(labelRefresh, SIGNAL(linkActivated(const QString &)),
+            this, SLOT(labelRefresh_clicked()));
 
     /* подключение к системе */
-    connect(ui->buttonLoginExit, SIGNAL(clicked()),
+    QObject::connect(ui->buttonLoginExit, SIGNAL(clicked()),
             this, SLOT(on_buttonExit_clicked()));
-    connect(ui->buttonLoginCancel, SIGNAL(clicked()),
+    QObject::connect(ui->buttonLoginCancel, SIGNAL(clicked()),
             this, SLOT(on_buttonLoginCancel_clicked()));
-    connect(ui->editLogin, SIGNAL(returnPressed()),
+    QObject::connect(ui->editLogin, SIGNAL(returnPressed()),
             this, SLOT(on_buttonLogin_clicked()));
-    connect(ui->editPassword, SIGNAL(returnPressed()),
+    QObject::connect(ui->editPassword, SIGNAL(returnPressed()),
             this, SLOT(on_buttonLogin_clicked()));
+
+    /* таблица */
+    QObject::connect(tableJournal, SIGNAL(journalChanged()),
+            this, SLOT(journal_changed()));
 
 //    // говорим, что у заголовков тоже есть контекстное меню
 //    tableJournal->horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -373,17 +377,17 @@ void MainWindow::connectSignals()
 
 //    /* таблица */
 //    // колонки
-//    connect(tableJournal->horizontalHeader(), SIGNAL(sectionClicked(int)),
+//    QObject::connect(tableJournal->horizontalHeader(), SIGNAL(sectionClicked(int)),
 //            this, SLOT(tableJournal_columnClicked(int)));
-//    connect(tableJournal->horizontalHeader(), SIGNAL(customContextMenuRequested(const QPoint &)),
+//    QObject::connect(tableJournal->horizontalHeader(), SIGNAL(customContextMenuRequested(const QPoint &)),
 //            this, SLOT(tableJournal_columnContext(const QPoint &)));
 //    // записи
-//    connect(tableJournal->verticalHeader(), SIGNAL(sectionClicked(int)),
+//    QObject::connect(tableJournal->verticalHeader(), SIGNAL(sectionClicked(int)),
 //            this, SLOT(tableJournal_rowClicked(int)));
-//    connect(tableJournal->verticalHeader(), SIGNAL(customContextMenuRequested(const QPoint &)),
+//    QObject::connect(tableJournal->verticalHeader(), SIGNAL(customContextMenuRequested(const QPoint &)),
 //            this, SLOT(tableJournal_rowContext(const QPoint &)));
 //    // значения
-//    connect(tableJournal, SIGNAL(customContextMenuRequested(const QPoint &)),
+//    QObject::connect(tableJournal, SIGNAL(customContextMenuRequested(const QPoint &)),
 //            this, SLOT(tableJournal_showContextMenu()));
 }
 
@@ -392,16 +396,16 @@ void MainWindow::checkButtons()
 {
     // кнопки на панели инструментов
     buttonJournal->setVisible(currentJournal);
-    buttonSave->setVisible(currentJournal && currentJournal->isChanged);
+    buttonSave->setVisible(false);//checkAllowEditJournal(currentJournal));
     buttonTools->setVisible(false);//buttonSave->isVisible());
     buttonRefresh->setVisible(currentJournal);
     buttonProcessing->setVisible(false);//!user->readonly && !journal->readonly);
 
     // иконка журнала
     if (currentJournal && currentJournal->isNew) ui->buttonJournal->setIcon(QIcon(":/icons/new"));
-    else if (currentJournal && currentJournal->deleted) ui->buttonJournal->setIcon(QIcon(":/icons/delete"));
-    else if (currentJournal && currentJournal->archived) ui->buttonJournal->setIcon(QIcon(":/icons/archive"));
-    //else if (user && !user->readonly && journal && !journal->readonly) ui->buttonJournal->setIcon(QIcon(":/icons/journal_write"));
+    else if (currentJournal && currentJournal->isDeleted) ui->buttonJournal->setIcon(QIcon(":/icons/delete"));
+    else if (currentJournal && currentJournal->isArchived) ui->buttonJournal->setIcon(QIcon(":/icons/archive"));
+    else if (checkAllowEditJournal(currentJournal)) ui->buttonJournal->setIcon(QIcon(":/icons/journal_write"));
     else ui->buttonJournal->setIcon(QIcon(":/icons/journal"));
 
     // декоративная стрелка
@@ -598,9 +602,8 @@ void MainWindow::fillTree()
         Journal *journal = journals->journals->at(i);
 
         // в зависимости от прав на запись разная иконка
-        QIcon icon(journal->deleted ? ":/icons/delete" : (journal->archived ? ":/icons/journal_archived" :
-                //(!user || user->readonly || !journal || journal->readonly ? ":/icons/journal" : ":/icons/journal_write")
-                ":/icons/journal"
+        QIcon icon(journal->isDeleted ? ":/icons/delete" : (journal->isArchived ? ":/icons/journal_archived" :
+                  (!checkAllowEditJournal(journal) ? ":/icons/journal" : ":/icons/journal_write")
                 ));
 
         QTreeWidgetItem *item = new QTreeWidgetItem(
@@ -768,6 +771,23 @@ bool MainWindow::checkSaveJournal(const QString &text, bool allowSave)
     return true;
 }
 
+// проверка на возможность редактирования журнала
+bool MainWindow::checkAllowEditJournal(Journal *journal)
+{
+    if (!journal || !journals || !journals->loader->user) return false;
+
+    User *user = journals->loader->user;
+
+    // админу можно всё
+    if (user->userType == utAdmin) return true;
+
+    // завуч и учитель может редактировать только неархивированный неудалённый журнал
+    if (user->userType == utDirector || user->userType == utTeacher) return (!journal->isDeleted && journal->isArchived);
+
+    // остальным редактирование запрещено
+    return false;
+}
+
 // реакция на нажатие кнопки "Войти в систему"
 void MainWindow::on_buttonLogin_clicked()
 {
@@ -867,12 +887,121 @@ void MainWindow::on_buttonLoginCancel_clicked()
     journals->abort();
 }
 
+// реакция на нажатие кнопки "Журналы"
+void MainWindow::on_buttonJournals_clicked()
+{
+    if (ui->buttonJournals->isCheckable() && currentJournal)
+        changeMainMode(mmJournal);
+    else
+        changeMainMode(mmJournals);
+}
+
+// реакция на нажатие кнопки с наименованием журнала
+void MainWindow::on_buttonJournal_clicked()
+{
+    // переключение страницы
+    changeMainMode(mmJournal);
+}
+
+// реакция на нажатие кнопки "Обновить"
+void MainWindow::on_buttonRefresh_clicked()
+{
+    if (!currentJournal || !checkSaveJournal(tr("Обновление журнала приведёт к потере изменений. Вы уверены?"), false))
+        return;
+
+    // затемняем окно
+    glass->install(this, tr("Загрузка журнала ..."));
+
+    // загружаем журнал
+    QString message;
+    if (journals->getJournal(currentJournal->getId(), currentJournal, &message))
+    {
+        // помечаем, что журнал не изменялся
+        currentJournal->isChanged = false;
+
+        // выводим данные журнала
+        tableJournal->setJournal(currentJournal);
+
+        // переключение страницы
+        changeMainMode(mmJournal);
+    }
+
+    // убираем затемнение в случае, если оно не требуется для диалоговых окон
+    if (useDialogGlass) glass->hide();
+    else glass->remove();
+
+    if (message != "")
+    {
+        QMessageBox::critical(this, tr("Загрузка журнала"),
+            tr("Ошибка при загрузке журнала:\n%1").arg(message));
+    }
+
+    // убираем затемнение
+    glass->remove();
+}
+
+// реакция на нажатие кнопки "О программе"
+void MainWindow::on_buttonAbout_clicked()
+{
+    // установка затемнения
+    if (useDialogGlass) glass->install(this);
+
+    QMessageBox::about(this, tr("О программе"),
+         tr("<html><b>Электронный журнал «Мой журнал 2»</b> версии %1"
+            "<p>Программа разработана в Qt под лицензией LGPL и является разработкой с открытым исходным кодом; "
+            "вы можете использовать программу в любых целях, не забывая имени её автора.</p>"
+            "<p>Вы также можете помочь в разработке, отправив письмо с "
+            "пожеланиями и рекомендациями на <a href=\"mailto:maloletkovki@gmail.com\">maloletkovki@gmail.com</a>.</p>"
+            "<i>Кирилл Малолетков, Саратов, 2013 г.</i></html>").arg(appVersion));
+
+    // убираем затемение
+    glass->remove();
+}
+
 // реакция на нажатие кнопки "Выйти"
 void MainWindow::on_buttonExit_clicked()
 {
     this->close();
 }
 
+// реакция на нажатие надписи-ссылки "Вернуться к журналу"
+void MainWindow::labelBack_clicked()
+{
+    // защита от дурака
+    if (!currentJournal) return;
+
+    // переключаемся на журнал
+    changeMainMode(mmJournal);
+}
+
+// реакция на нажатие надписи-ссылки "Обновить"
+void MainWindow::labelRefresh_clicked()
+{
+    if (currentMode == mmJournals)
+    {
+        glass->install(this, tr("Обновление дерева журналов ..."));
+
+        QString message;
+        if (journals->refreshJournals(&message))
+        {
+            // перестраиваем дерево журналов
+            fillTree();
+        }
+        else
+        {
+            // если сообщения нет - операцию отменили
+            if (message != "")
+            {
+                ui->labelLoginError->setText(tr("Ошибка при получении журналов: ") + message);
+                ui->labelLoginError->show();
+            }
+        }
+
+        glass->remove();
+    }
+}
+
+// реакция на нажатие кнопки "Открыть" дерева журналов
 void MainWindow::buttonOpen_clicked()
 {
     // получаем имя сработавшей кнопки
@@ -901,11 +1030,11 @@ void MainWindow::buttonOpen_clicked()
         QString message;
         if (journals->getJournal(id, currentJournal, &message))
         {
-            // выводим данные журнала
-            tableJournal->setJournal(currentJournal);
-
             // помечаем, что журнал не изменялся
             currentJournal->isChanged = false;
+
+            // выводим данные журнала
+            tableJournal->setJournal(currentJournal);
 
             // переключение страницы
             changeMainMode(mmJournal);
@@ -924,4 +1053,10 @@ void MainWindow::buttonOpen_clicked()
         // убираем затемнение
         glass->remove();
     }
+}
+
+// реакция на изменение данных журнала внутри виджета с таблицей
+void MainWindow::journal_changed()
+{
+    updateWindowTitle();
 }
