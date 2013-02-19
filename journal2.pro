@@ -26,7 +26,8 @@ SOURCES += main.cpp\
     loaderenums.cpp \
     enums.cpp \
     userenums.cpp \
-    journallist.cpp
+    journallist.cpp \
+    column.cpp
 
 HEADERS  += mainwindow.h \
     journals.h \
@@ -34,7 +35,8 @@ HEADERS  += mainwindow.h \
     loader.h \
     user.h \
     answer.h \
-    journallist.h
+    journallist.h \
+    column.h
 
 FORMS    += mainwindow.ui
 

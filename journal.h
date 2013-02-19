@@ -4,13 +4,13 @@
 #include <QtXml>
 #include <QString>
 
-// строка для разбора даты и времени от сервера
-static QString dateTimeParseString = "yyyy-MM-dd HH:mm:ss";
+#include "column.h"
 
 class Journal
 {
 public:
     Journal(const QString &xml);
+    ~Journal();
 
     /* основные данные журнала */
     QString name;
@@ -18,11 +18,18 @@ public:
     QString className;
     int teacherId;
     QString teacherName;
+    int courseId;
+    QString courseName;
     bool isAuto;
     QDateTime changed;
     QString description;
     bool archived;
     bool deleted;
+    bool isChanged; // журнал изменялся с момента загрузки
+    bool isNew; // журнал новосозданный
+
+    /* списки данных */
+    QList<Column *> columns;
 
     /* основные функции */
     bool load(QFile *file);
@@ -34,6 +41,7 @@ public:
 
     /* функции для работы с внутренними данными */
     int getId();
+    QString getName();
 
 private:
     /* внутренние данные журнала */

@@ -67,37 +67,73 @@ bool Journals::refreshJournals(QString *message)
 }
 
 // загрузить журнал по его идентификатору (id) с необходимостью перезагрузки его данных (reload)
-Journal *Journals::getJournal(int id, bool reload)
+bool Journals::getJournal(int id, Journal *&journal, QString *message, bool reload)
 {
-    if (!journals) return 0;
+    *message = "";
+    Journal *result = 0;
 
-    Journal *journal = 0;
+    // защита от дурака
+    if (!journals) return false;
 
     // пробуем отыскать журнал в списке
-    foreach (Journal *journal, *journals)
+    for (int i = 0; journals->count() > i; i++)
     {
-        if (journal->getId() == id) journal = journal;
+        Journal *jrn = journals->at(i);
+        if (jrn->getId() == id)
+        {
+            result = jrn;
+            break;
+        }
     }
 
     // если необходимо, перезагружаем журнал
-    if (reload)
+    if (reload || !result)
     {
-        // загружаем журнал
-        Journal *loaded = 0;//loader->loadJournal(id);
+        // загружаем журнал через загрузчик
+        if (loader->loadJournal(id))
+        {
+            Answer *answer = loader->lastAnswer;
 
-        // добавляем журнал в список, если его ранее не было
-        if (journal)
-        {
-            journals->append(loaded);
-            journal = loaded;
-        }
-        else // иначе обновляем информацию у имеющегося
-        {
-            journal->copyFrom(loaded);
+            // при ошибке возвращаем сообщение
+            if (answer->getCode() != OK)
+            {
+                *message = answer->getResult();
+                return false;
+            };
+
+            // формируем на основе ответа список журналов
+            JournalList *tmp = new JournalList(answer->getValue("journals"));
+
+            // запрос должен был вернуть один журнал, если не так - возвращаем ошибку
+            if (tmp->count() != 1)
+            {
+                *message = tr("Запрос вернул неверное количество журналов.");
+
+                delete tmp;
+                return false;
+            }
+
+            // получаем журнал из ответа
+            Journal *loaded = tmp->at(0);
+
+            // добавляем журнал в список, если его ранее не было
+            if (!result)
+            {
+                journals->append(loaded);
+                result = loaded;
+            }
+            else // иначе обновляем информацию у имеющегося
+            {
+                result->copyFrom(loaded);
+            }
+
+            delete tmp;
         }
     }
 
-    return journal;
+    journal = result;
+
+    return result;
 }
 
 // очистка списка журналов

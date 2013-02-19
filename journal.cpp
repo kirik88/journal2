@@ -9,6 +9,11 @@ Journal::Journal(const QString &xml)
     if (xml != "") load(xml);
 }
 
+Journal::~Journal()
+{
+    clear();
+}
+
 // загрузка журнала из файла
 bool Journal::load(QFile *file)
 {
@@ -40,16 +45,28 @@ bool Journal::load(const QString &xml)
 // скопировать данные из другого журнала (from)
 void Journal::copyFrom(Journal *from)
 {
+    clear();
+
     this->name = from->name;
     this->classId = from->classId;
     this->className = from->className;
     this->teacherId = from->teacherId;
     this->teacherName = from->teacherName;
+    this->courseId = from->courseId;
+    this->courseName = from->courseName;
     this->isAuto = from->isAuto;
     this->changed = from->changed;
     this->description = from->description;
     this->archived = from->archived;
     this->deleted = from->deleted;
+    this->isChanged = from->isChanged;
+    this->isNew = from->isNew;
+
+    // копирование колонок
+    for (int i = 0; from->columns.count() > i; i++)
+    {
+        columns.append(new Column(from->columns.at(i)));
+    }
 }
 
 // очистить данные журнала
@@ -60,17 +77,40 @@ void Journal::clear()
     className = "";
     teacherId = -1;
     teacherName = "";
+    courseId = -1;
+    courseName = "";
     isAuto = false;
     changed = QDateTime::currentDateTime();
     description = "";
     archived = false;
     deleted = false;
+    isChanged = false;
+    isNew = false;
+
+    // очистка списка колонок
+    while (columns.count() > 0)
+    {
+        delete columns.at(0);
+        columns.removeAt(0);
+    }
 }
 
 // вернуть идентификатор журнала
 int Journal::getId()
 {
     return id;
+}
+
+// вернуть имя журнала; если оно не задано, имя сформируется автоматически
+QString Journal::getName()
+{
+    // вернуть предопределённое имя
+    if (this->name != "") return this->name;
+
+    // сформировать имя на основе наименований класса и предмета
+    if (this->className != "" && this->courseName != "") return QString("Класс %1:\n%2").arg(this->className).arg(this->courseName);
+
+    return "";
 }
 
 // парсим xml
@@ -81,7 +121,6 @@ void Journal::parseNode(QDomNode node)
         QDomElement e = node.toElement(); // пробуем преобразовать узел в элемент
         if (!e.isNull())
         {
-            qDebug() << e.tagName();
             // для корневого узла
             if (e.tagName() == "journal")
             {
@@ -89,10 +128,10 @@ void Journal::parseNode(QDomNode node)
                 if (e.hasChildNodes()) parseNode(node.firstChild());
             }
             // для узлов-групп спускаемся ниже
-            //else if (e.tagName() == "columns" || e.tagName() == "records" || e.tagName() == "values")
-            //{
-            //    if (e.hasChildNodes()) parseNode(node.firstChild());
-            //}
+            else if (e.tagName() == "columns")
+            {
+                if (e.hasChildNodes()) parseNode(node.firstChild());
+            }
             // другие используем
             else if (e.tagName() == "name")
             {
@@ -114,6 +153,14 @@ void Journal::parseNode(QDomNode node)
             {
                 this->teacherName = e.text();
             }
+            else if (e.tagName() == "course")
+            {
+                this->courseId = e.text().toInt();
+            }
+            else if (e.tagName() == "course_name")
+            {
+                this->courseName = e.text();
+            }
             else if (e.tagName() == "auto")
             {
                this->isAuto = (e.text().toInt() == 1);
@@ -134,24 +181,15 @@ void Journal::parseNode(QDomNode node)
             {
                this->deleted = (e.text().toInt() == 1);
             }
-            /*
+            // "вытаскиваем" колонки
             else if (e.tagName() == "column")
             {
-                int type = (e.hasAttribute("type") ? e.attribute("type").toInt() : 0);
-                int max  = (e.hasAttribute("max")  ? e.attribute("max" ).toInt() : 5);
-                appendColumn(e.text(), ColumnType(type), max);
+                QString data;
+                QTextStream out(&data);
+                node.save(out, 1);
+
+                columns.append(new Column(data));
             }
-            else if (e.tagName() == "record")
-            {
-                appendRecord(e.text());
-            }
-            else if (e.tagName() == "value")
-            {
-                int col = e.attribute("col").toInt();
-                int rec = e.attribute("rec").toInt();
-                QString comments = (e.hasAttribute("comments") ? e.attribute("comments") : "");
-                appendValue(col, rec, e.text(), comments);
-            }*/
         }
         node = node.nextSibling();
     }

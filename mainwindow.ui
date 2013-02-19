@@ -617,6 +617,11 @@ p, li { white-space: pre-wrap; }
          </column>
          <column>
           <property name="text">
+           <string>Предмет</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
            <string>Учитель</string>
           </property>
          </column>

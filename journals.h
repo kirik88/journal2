@@ -25,7 +25,7 @@ public:
 
     /* функции работы с журналами */
     bool refreshJournals(QString *message);
-    Journal *getJournal(int id, bool reload = true);
+    bool getJournal(int id, Journal *&journal, QString *message, bool reload = true);
 
     /* функции работы с данными */
     void clear();

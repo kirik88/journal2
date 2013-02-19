@@ -3,7 +3,7 @@
 Answer::Answer(const QString &xml)
 {
     this->code   = ANSWER_ERROR;
-    this->result = QT_TR_NOOP(QString::fromUtf8("Получен некорректный ответ от хранилища.")); // TODO:TR
+    this->result = QT_TR_NOOP(QString::fromUtf8("Получен некорректный ответ от сервера.")); // TODO:TR
 
     QDomDocument doc;
     if (!doc.setContent(xml)) return;
@@ -53,7 +53,7 @@ void Answer::parseNode(QDomNode node)
                 this->result = e.text();
             }
             // для комбинированных ответов сохраняем весь вывод
-            else if (e.tagName() == "journals" || e.tagName() == "classes")
+            else if (e.tagName() == "journals")
             {
                 QString data;
                 QTextStream out(&data);

@@ -8,6 +8,7 @@
 #include <QMessageBox>
 #include <QStyleFactory>
 #include <QMovie>
+#include <QCloseEvent>
 
 #include "journals.h"
 
@@ -74,13 +75,23 @@ private:
     void readSettings();
     void writeSettings(Setting setting);
     void connectSignals();
+    void checkButtons();
     void changeMainMode(MainMode mode);
     void updateWidgets();
     void fillTree();
+    void clearTable();
+    void fillTable();
+    bool checkSaveJournal(const QString &text, bool allowSave = true);
 
 private slots:
+    /* кнопки режима подключения к системе */
     void on_buttonLogin_clicked();
+
+    /* кнопки на панели инструментов */
     void on_buttonExit_clicked();
+
+    /* кнопки дерева журналов */
+    void buttonOpen_clicked(); // кнопка "Открыть"
 
 protected:
     void closeEvent(QCloseEvent *event);

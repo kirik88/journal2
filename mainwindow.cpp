@@ -33,6 +33,7 @@ void MainWindow::prepareApplication()
     commonIni = QString("%1/%2.ini").arg(QApplication::applicationDirPath()).arg(QApplication::applicationName());
     //glass = new Glass();
     journals = 0;
+    currentJournal = 0;
 
     // инициализируем надписей
     labelBackText = tr("« Вернуться к журналу");
@@ -263,10 +264,34 @@ void MainWindow::connectSignals()
 //            this, SLOT(tableJournal_showContextMenu()));
 }
 
+// показ/скрытие кнопок
+void MainWindow::checkButtons()
+{
+    // кнопки на панели инструментов
+    buttonJournal->setVisible(currentJournal);
+    buttonSave->setVisible(currentJournal && currentJournal->isChanged);
+    buttonTools->setVisible(false);//buttonSave->isVisible());
+    buttonRefresh->setVisible(currentJournal);
+    buttonProcessing->setVisible(false);//!user->readonly && !journal->readonly);
+
+    // иконка журнала
+    if (currentJournal && currentJournal->isNew) ui->buttonJournal->setIcon(QIcon(":/icons/new"));
+    else if (currentJournal && currentJournal->deleted) ui->buttonJournal->setIcon(QIcon(":/icons/delete"));
+    else if (currentJournal && currentJournal->archived) ui->buttonJournal->setIcon(QIcon(":/icons/archive"));
+    //else if (user && !user->readonly && journal && !journal->readonly) ui->buttonJournal->setIcon(QIcon(":/icons/journal_write"));
+    else ui->buttonJournal->setIcon(QIcon(":/icons/journal"));
+
+    // декоративная стрелка
+    imageArrow->setVisible(buttonJournal->isVisible());
+
+    // наименование журнала
+    if (currentJournal) ui->buttonJournal->setText(currentJournal->getName());
+}
+
 // смена режима приложения
 void MainWindow::changeMainMode(MainMode mode)
 {
-    //checkButtons();
+    checkButtons();
 
     switch (mode)
     {
@@ -318,7 +343,7 @@ void MainWindow::changeMainMode(MainMode mode)
         ui->buttonTools->setCheckable(false);
 
         labelBack->setParent(ui->treeJournals);
-        //labelBack->setVisible(journal);
+        labelBack->setVisible(currentJournal);
 
         labelRefresh->setParent(ui->treeJournals);
         labelRefresh->show();
@@ -370,7 +395,7 @@ void MainWindow::changeMainMode(MainMode mode)
         ui->buttonTools->setChecked(true);
 
         labelBack->setParent(ui->listTools);
-        //labelBack->setVisible(journal);
+        labelBack->setVisible(currentJournal);
 
         ui->listTools->setFocus();
     }
@@ -403,11 +428,10 @@ void MainWindow::updateWidgets()
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     // запрос на сохранение
-    /*if (!reply)
+    if (currentJournal && !checkSaveJournal(tr("Сохранить изменения в журнале «%1» перед закрытием?").arg(currentJournal->getName())))
     {
-        if (journal && !checkSaveJournal(tr("Сохранить изменения в журнале «%1» перед закрытием?").arg(journal->title)))
-            event->ignore();
-    }*/
+        event->ignore();
+    }
 
     // сохраняем состояние окна
     writeSettings(sWindow);
@@ -437,13 +461,15 @@ void MainWindow::fillTree()
 
         // в зависимости от прав на запись разная иконка
         QIcon icon(journal->deleted ? ":/icons/delete" : (journal->archived ? ":/icons/journal_archived" :
-                (/*!user || user->readonly || !journal || journal->readonly ? ":/icons/journal" : */":/icons/journal_write")
+                //(!user || user->readonly || !journal || journal->readonly ? ":/icons/journal" : ":/icons/journal_write")
+                ":/icons/journal"
                 ));
 
         QTreeWidgetItem *item = new QTreeWidgetItem(
                 QStringList()
-                << tr("%1").arg(journal->name)
+                << tr("%1").arg(journal->getName())
                 << journal->className
+                << journal->courseName
                 << journal->teacherName
                 << journal->description);
 
@@ -456,9 +482,9 @@ void MainWindow::fillTree()
         item->setIcon(0, icon);
 
         // описание курсивом
-        font = item->font(3);
+        font = item->font(4);
         font.setItalic(true);
-        item->setFont(3, font);
+        item->setFont(4, font);
 
         // дата и время изменения справа
         // кнопка на открытие журнала справа и с иконкой
@@ -490,7 +516,7 @@ void MainWindow::fillTree()
 
         item->setData(0, Qt::UserRole, journal->getId());
 
-        ui->treeJournals->setItemWidget(item, 4, frame);
+        ui->treeJournals->setItemWidget(item, 5, frame);
     }
 
     // добавление строки "Новый журнал"
@@ -511,9 +537,9 @@ void MainWindow::fillTree()
         item->setIcon(0, icon);
 
         // описание
-        font = item->font(3);
+        font = item->font(4);
         font.setItalic(true);
-        item->setFont(3, font);
+        item->setFont(4, font);
 
         // кнопка
         QFrame *frame = new QFrame();
@@ -538,7 +564,7 @@ void MainWindow::fillTree()
 
         item->setData(0, Qt::UserRole, 0);
 
-        ui->treeJournals->setItemWidget(item, 4, frame);
+        ui->treeJournals->setItemWidget(item, 5, frame);
     //}
 
     // выравнивание по содержимому
@@ -546,6 +572,106 @@ void MainWindow::fillTree()
     {
         ui->treeJournals->resizeColumnToContents(j);
     }
+}
+
+// очищаем таблицу
+void MainWindow::clearTable()
+{
+    // колонки и строки
+    ui->tableJournal->clear();
+    ui->tableJournal->setColumnCount(0);
+    ui->tableJournal->setRowCount(0);
+}
+
+// заполняем заголовки таблицы данными журнала
+void MainWindow::fillTable()
+{
+    // очищаем
+    clearTable();
+
+    // защита от дурака
+    if (!currentJournal) return;
+
+    // колонки и строки
+    ui->tableJournal->setColumnCount(currentJournal->columns.count());
+    //ui->tableJournal->setRowCount(journal->recordsCount());
+
+    // заголовки колонок
+    for (int col = 0; col < currentJournal->columns.count(); col++)
+    {
+        Column *column = currentJournal->columns.at(col);
+
+        QTableWidgetItem *col_item = new QTableWidgetItem(column->getName());
+        col_item->setData(Qt::UserRole, column->getId()); // храним идентификатор колонки
+        ui->tableJournal->setHorizontalHeaderItem(col, col_item);
+    }
+
+    // текст записей
+    //for (int rec = 0; rec < journal->recordsCount(); rec++)
+    //{
+    //    QTableWidgetItem *rec_item = new QTableWidgetItem(journal->record(rec)->text);
+    //    rec_item->setData(Qt::UserRole, journal->record(rec)->id); // храним идентификатор записи
+    //    ui->tableJournal->setVerticalHeaderItem(rec, rec_item);
+    //}
+
+    // значения
+    //fillValues();
+}
+
+// проверка, сохранялся ли журнал в выводом сообщения и автоматическим сохранением
+bool MainWindow::checkSaveJournal(const QString &text, bool allowSave)
+{
+    if (currentJournal && currentJournal->isChanged)
+    {
+        QMessageBox *question = new QMessageBox(QMessageBox::Question, tr("Журнал не сохранён"), text);
+
+        // кнопка "Отмена"
+        QPushButton *btn = new QPushButton(QApplication::style()->standardIcon(QStyle::SP_DialogCancelButton), tr("Отмена"));
+        btn->setObjectName("checkCancel");
+        question->addButton(btn, QMessageBox::RejectRole);
+
+        // кнопка "Не сохранять"
+        btn = new QPushButton(QApplication::style()->standardIcon(QStyle::SP_DialogDiscardButton), tr("Не сохранять"));
+        btn->setObjectName("checkDiscard");
+        question->addButton(btn, QMessageBox::DestructiveRole);
+        //connect(btn, SIGNAL(clicked()), this, SLOT(buttonSaveJournalDialog_clicked()));
+
+        if (allowSave) // при allowSave должна быть возможность сохранить журнал
+        {
+            // кнопка "Сохранить"
+            btn = new QPushButton(QApplication::style()->standardIcon(QStyle::SP_DialogSaveButton), tr("Сохранить"));
+            btn->setObjectName("checkSave");
+            question->addButton(btn, QMessageBox::YesRole);
+            //connect(btn, SIGNAL(clicked()), this, SLOT(buttonSaveJournalDialog_clicked()));
+        }
+
+        // устанавливаем затемнение
+        //if (useDialogGlass) glass->install(this);
+
+        // показываем диалоговое окно
+        int result = question->exec();
+
+        // убираем затемнение
+        //glass->remove();
+
+        switch (result)
+        {
+        case 1: // нажали "Не сохранять"
+            return true;
+
+        case 2: // нажали "Сохранить"
+            // сохраняем журнал
+            currentJournal->isChanged = false;
+            currentJournal->isNew = false;
+
+            return true;
+
+        default: // нажали "Отмена"
+            return false;
+        }
+    }
+
+    return true;
 }
 
 // реакция на нажатие кнопки "Войти в систему"
@@ -639,4 +765,48 @@ void MainWindow::on_buttonLogin_clicked()
 void MainWindow::on_buttonExit_clicked()
 {
     this->close();
+}
+
+void MainWindow::buttonOpen_clicked()
+{
+    // получаем имя сработавшей кнопки
+    QToolButton *btn = qobject_cast<QToolButton *>(sender());
+    QString name = btn->objectName();
+
+    // цифра после имени - идентификатор журнала
+    name.remove(0, buttonOpenName.length());
+    int id = name.toInt();
+
+    // создаём новый журнал, если вместо идентификтора число 0
+    if (id == 0)
+    {
+        //buttonNew_clicked();
+    }
+    // иначе загружаем указанный
+    else
+    {
+        if (currentJournal && !checkSaveJournal(tr("Сохранить изменения в журнале «%1» перед открытием выбранного?").arg(currentJournal->getName())))
+            return;
+
+        // загружаем журнал
+        QString message;
+        if (journals->getJournal(id, currentJournal, &message))
+        {
+            // заполнение таблицы
+            fillTable();
+
+            // помечаем, что журнал не изменялся
+            currentJournal->isChanged = false;
+
+            // переключение страницы
+            changeMainMode(mmJournal);
+        }
+        else
+        {
+            QMessageBox::critical(this, tr("Загрузка журнала"),
+                tr("Ошибка при загрузке журнала:\n%1").arg(message));
+        }
+
+        //loadJournal();
+    }
 }

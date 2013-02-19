@@ -32,7 +32,7 @@ public:
 
     /* функции для работы с журналами */
     bool loadJournals(bool full = false, bool loop = true);
-    bool loadJournal(int id, bool full = true, bool loop = true);
+    bool loadJournal(int id, bool loop = true);
 
 private:
     /* внутренние данные */
@@ -50,6 +50,7 @@ signals:
     /* сигналы по завершении */
     void loginFinished(Answer *answer); // после подключения к системе
     void journalsFinished(Answer *answer); // после загрузки журналов
+    void journalFinished(Answer *answer); // после загрузки журнала
 
 private slots:
     /* ответы сервера */

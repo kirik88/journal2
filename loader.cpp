@@ -12,7 +12,7 @@ Loader::Loader(const QString &site, const QString &storage) : QObject(0)
     proxy = new QNetworkProxy();
     httpLoop = 0;
     lastAnswer = 0;
-    operation = loIDDLE;
+    operation = loIddle;
 
     // отлавливаем сигналы
     QObject::connect(network, SIGNAL(finished(QNetworkReply *)), this, SLOT(httpFinished(QNetworkReply *)));
@@ -38,11 +38,11 @@ Loader::~Loader()
 // вернёт false, если операцию отменили
 bool Loader::login(const QString &login, const QString &password, bool loop)
 {
-    if (operation != loIDDLE)
+    if (operation != loIddle)
     {
         return false; //TODO:вызывать исключение
     }
-    operation = loLOGIN;
+    operation = loLogin;
     httpAborted = false;
 
     // находим md5-хэш пароля
@@ -84,11 +84,11 @@ void Loader::abort()
 // вернёт false, если операцию отменили
 bool Loader::loadJournals(bool full, bool loop)
 {
-    if (operation != loIDDLE)
+    if (operation != loIddle)
     {
         return false; //TODO:вызывать исключение
     }
-    operation = loJOURNALS;
+    operation = loJournals;
     httpAborted = false;
 
     // формируем строку запроса
@@ -113,11 +113,37 @@ bool Loader::loadJournals(bool full, bool loop)
     return true;
 }
 
-// загрузить журнал по его идентификатору (id); загрузить полностью все данные журнала (full)
+// загрузить журнал по его идентификатору (id)
 // вернёт false, если операцию отменили
-bool Loader::loadJournal(int id, bool full, bool loop)
+bool Loader::loadJournal(int id, bool loop)
 {
-    return false;
+    if (operation != loIddle)
+    {
+        return false; //TODO:вызывать исключение
+    }
+    operation = loJournal;
+    httpAborted = false;
+
+    // формируем строку запроса
+    QUrl url = QString("http://%1/journal/%2/xml").arg(site).arg(id);
+
+    // запускаем
+    network->get(QNetworkRequest(url));
+
+    // если нужно, "замираем" до конца выполнения запроса
+    if (loop)
+    {
+        httpLoop = new QEventLoop();
+
+        int res = httpLoop->exec();
+
+        delete httpLoop;
+        httpLoop = 0;
+
+        return (res == 0);
+    }
+
+    return true;
 }
 
 // ответ сервера при логине
@@ -151,11 +177,11 @@ void Loader::httpFinished(QNetworkReply *reply)
             {
             case QNetworkReply::HostNotFoundError:
                 code = NOT_FOUND_HOST;
-                errorMessage = tr("Сайт недоступен.");
+                errorMessage = tr("Сервер с журналами недоступен.");
                 break;
             case QNetworkReply::ConnectionRefusedError:
                 code = CONNECTION_REFUSED;
-                errorMessage = tr("Нет доступа к интернету.");
+                errorMessage = tr("Отсутствует подключение к интернету.");
                 break;
             default:
                 code = OTHER_ERROR;
@@ -190,7 +216,7 @@ void Loader::httpFinished(QNetworkReply *reply)
         // выпускаем нужный сигнал
         switch (operation)
         {
-        case loLOGIN:
+        case loLogin:
             // при успехе сохраняем данные пользователя
             if (lastAnswer->getCode() == OK)
             {
@@ -201,15 +227,19 @@ void Loader::httpFinished(QNetworkReply *reply)
             emit loginFinished(lastAnswer);
             break;
 
-        case loJOURNALS:
+        case loJournals:
             emit journalsFinished(lastAnswer);
+            break;
+
+        case loJournal:
+            emit journalFinished(lastAnswer);
             break;
 
         default:
             break;
         }
 
-        operation = loIDDLE;
+        operation = loIddle;
 
         if (httpLoop) httpLoop->exit(0);
    }
