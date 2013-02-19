@@ -41,7 +41,6 @@ void MainWindow::prepareApplication()
     // инициализируем надписи
     labelBackText = tr("« Вернуться к журналу");
     labelRefreshText = tr("Обновить");
-    markNone = tr("н");
 
     // надпись-кнопка "Вернуться к журналу"
     labelBack = new QLabel(QString("<html><a href=\"back\">%1</a></html>").arg(labelBackText));

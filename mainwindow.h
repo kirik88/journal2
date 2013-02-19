@@ -18,7 +18,7 @@
 
 // версия приложения
 static QString majorVersion = "0";
-static QString minorVersion = "1";
+static QString minorVersion = "2";
 static QString appVersion = majorVersion + "." + minorVersion;
 
 // идентификатор формы по-умолчанию при отправлении файла
@@ -34,9 +34,6 @@ static QString itemToolName = "itemTool"; // элемент списка инс�
 // текст надписей
 static QString labelBackText; // надпись-ссылка "Вернуться к журналу"
 static QString labelRefreshText; // надпись-ссылка "Обновить"
-
-// метка "не был" для журнала
-static QString markNone; // будет установлена при инициализации приложения
 
 namespace Ui {
 class MainWindow;

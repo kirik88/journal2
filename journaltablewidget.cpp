@@ -3,6 +3,11 @@
 JournalTableWidget::JournalTableWidget(QWidget *parent) :
     QTableWidget(parent)
 {
+    // отметка "не был"
+    markNone = tr("н");
+
+    // назначаем свою отрисовку ячейки
+    setItemDelegate(new JournalItemDelegate());
 }
 
 // назначает журнал
@@ -71,7 +76,38 @@ void JournalTableWidget::fillAll()
     }
 
     // выставляем значения в ячейки
-    //fillValues();
+    for (int col = 0; col < cols.count(); col++)
+    {
+        for (int row = 0; row < rows.count(); row++)
+        {
+            int colId = cols.at(col)->data(Qt::UserRole).toInt();
+            int rowId = rows.at(row)->data(Qt::UserRole).toInt();
+
+            QTableWidgetItem *item = new QTableWidgetItem();
+
+            Value *val = journal->getValue(colId, rowId);
+            if (val)
+            {
+                QString vstr = val->value;
+
+                if (vstr.toLower() == markNone)
+                    item->setData(Qt::UserRole, QPixmap(":/icons/16/markn"));
+                else if (1 <= vstr.toInt() && vstr.toInt() <= 5)
+                    item->setData(Qt::UserRole, QPixmap(tr(":/icons/16/mark%1").arg(vstr.toInt())));
+                else
+                    item->setText(vstr);
+                    //item->setData(Qt::UserRole, QPixmap(":/icons/16/markNone"));
+
+                // помечаем, есть ли комментарий
+                item->setData(Qt::UserRole+1, val->description != "");
+            }
+
+            item->setTextAlignment(Qt::AlignCenter);
+            item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+
+            setItem(row, col, item);
+        }
+    }
 
     // разблокируем сигналы
     blockSignals(false);

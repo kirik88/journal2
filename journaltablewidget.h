@@ -4,6 +4,10 @@
 #include <QTableWidget>
 
 #include "journal.h"
+#include "journalitemdelegate.h"
+
+// метка "не был" для журнала
+static QString markNone; // будет установлена при инициализации приложения
 
 class JournalTableWidget : public QTableWidget
 {

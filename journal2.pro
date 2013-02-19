@@ -30,7 +30,9 @@ SOURCES += main.cpp\
     column.cpp \
     journaltablewidget.cpp \
     glass.cpp \
-    row.cpp
+    row.cpp \
+    value.cpp \
+    journalitemdelegate.cpp
 
 HEADERS  += mainwindow.h \
     journals.h \
@@ -42,7 +44,9 @@ HEADERS  += mainwindow.h \
     column.h \
     journaltablewidget.h \
     glass.h \
-    row.h
+    row.h \
+    value.h \
+    journalitemdelegate.h
 
 FORMS    += mainwindow.ui
 

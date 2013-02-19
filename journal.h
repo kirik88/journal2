@@ -6,6 +6,7 @@
 
 #include "column.h"
 #include "row.h"
+#include "value.h"
 
 class Journal
 {
@@ -33,6 +34,7 @@ public:
     /* списки данных */
     QList<Column *> columns;
     QList<Row *> rows;
+    QList<Value *> values;
 
     /* основные функции */
     bool load(QFile *file);
@@ -41,6 +43,7 @@ public:
     /* функции для работы с данными */
     void copyFrom(Journal *from);
     void clear();
+    Value *getValue(int colId, int rowId);
 
     /* функции для работы с внутренними данными */
     int getId();

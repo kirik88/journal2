@@ -80,6 +80,12 @@ void Journal::copyFrom(Journal *from)
     {
         rows.append(new Row(from->rows.at(i)));
     }
+
+    // копирование значений
+    for (int i = 0; from->values.count() > i; i++)
+    {
+        values.append(new Value(from->values.at(i)));
+    }
 }
 
 // очистить данные журнала
@@ -113,6 +119,26 @@ void Journal::clear()
         delete rows.at(0);
         rows.removeAt(0);
     }
+
+    // очистка списка значений
+    while (values.count() > 0)
+    {
+        delete values.at(0);
+        values.removeAt(0);
+    }
+}
+
+// вернуть значение
+Value *Journal::getValue(int colId, int rowId)
+{
+    for (int val = 0; values.count() > val; val++)
+    {
+        Value *value = values.at(val);
+
+        if (value->columnId == colId && value->studentId == rowId) return value;
+    }
+
+    return 0;
 }
 
 // вернуть идентификатор журнала
@@ -148,7 +174,7 @@ void Journal::parseNode(QDomNode node)
                 if (e.hasChildNodes()) parseNode(node.firstChild());
             }
             // для узлов-групп спускаемся ниже
-            else if (e.tagName() == "columns" || e.tagName() == "rows")
+            else if (e.tagName() == "columns" || e.tagName() == "rows" || e.tagName() == "student_values")
             {
                 if (e.hasChildNodes()) parseNode(node.firstChild());
             }
@@ -218,6 +244,15 @@ void Journal::parseNode(QDomNode node)
                 node.save(out, 1);
 
                 rows.append(new Row(data));
+            }
+            // "вытаскиваем" отметки ученикам
+            else if (e.tagName() == "student_value")
+            {
+                QString data;
+                QTextStream out(&data);
+                node.save(out, 1);
+
+                values.append(new Value(data));
             }
         }
         node = node.nextSibling();
