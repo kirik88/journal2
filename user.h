@@ -13,6 +13,7 @@ public:
     /* данные пользователя  */
     int id; // идентификатор
     QString login, password; // логин и хешированный md5 пароль
+    QString name; // имя пользователя
     UserType userType; // уровень прав
 
 };

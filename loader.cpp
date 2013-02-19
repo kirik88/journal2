@@ -230,6 +230,7 @@ void Loader::httpFinished()
             if (lastAnswer->getCode() == OK)
             {
                 user->id = lastAnswer->getValue("id").toInt();
+                user->name = lastAnswer->getValue("name");
                 user->userType = UserType(lastAnswer->getValue("user_type").toInt());
             }
 

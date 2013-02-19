@@ -79,12 +79,14 @@ private:
 
     /* основные функции приложения */
     void prepareApplication();
+    bool eventFilter(QObject *obj, QEvent *event);
     void readSettings();
     void writeSettings(Setting setting);
     void connectSignals();
     void checkButtons();
     void changeMainMode(MainMode mode);
     void updateWidgets();
+    void updateWindowTitle();
     void fillTree();
     bool checkSaveJournal(const QString &text, bool allowSave = true);
 

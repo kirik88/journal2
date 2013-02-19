@@ -104,6 +104,106 @@ void MainWindow::prepareApplication()
     changeMainMode(mmLogin);
 }
 
+// отлов событий окна
+// используется, чтобы, например, отловить нажатие "горячих клавиш"
+bool MainWindow::eventFilter(QObject *obj, QEvent *event)
+{
+    // изменения размеров окна
+    if ((event->type() == QEvent::Show) || (event->type() == QEvent::Resize))
+    {
+        updateWidgets();
+    }
+
+    // все что относится к таблице
+    /*if (ui->tableJournal->hasFocus())
+    {
+        if (event->type() == QEvent::KeyRelease)
+        {
+            // текущий элемент
+            QTableWidgetItem *item = ui->tableJournal->currentItem();
+            if (!item) return QMainWindow::eventFilter(obj, event);
+
+            QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+
+            int key = keyEvent->key();
+            if (keyEvent->text().toLower() == markNone) key = Qt::Key_Y; // для русской буквы "н" при выставлении метки "не был"
+            if (keyEvent->text().toLower() == tr("ы"))  key = Qt::Key_S; // для русской буквы "ы" при сохранении журнала
+            if (keyEvent->text().toLower() == tr("к"))  key = Qt::Key_R; // для русской буквы "к" при обновлении журнала
+
+            switch (key)
+            {
+            // выставление конкретного значения
+            case Qt::Key_0:
+                changeValue(item->column(), item->row(), 0);
+                break;
+            case Qt::Key_1:
+                changeValue(item->column(), item->row(), 1);
+                break;
+            case Qt::Key_2:
+                changeValue(item->column(), item->row(), 2);
+                break;
+            case Qt::Key_3:
+                changeValue(item->column(), item->row(), 3);
+                break;
+            case Qt::Key_4:
+                changeValue(item->column(), item->row(), 4);
+                break;
+            case Qt::Key_5:
+                changeValue(item->column(), item->row(), 5);
+                break;
+
+            // выставление метки "не был"
+            case Qt::Key_Y:
+                changeValue(item->column(), item->row(), markNone);
+                break;
+
+            // изменение значения
+            case Qt::Key_Space:
+                if (user && journal && (user->readonly || journal->readonly))
+                {
+                    showValueComments(item->column(), item->row());
+                }
+                else
+                {
+                    if (keyEvent->modifiers() & Qt::CTRL)
+                        nextValue(item->column(), item->row()); // быстрая смена значения
+                    else
+                        changeValue(item->column(), item->row()); // обычное изменение
+                }
+                break;
+
+            // очистка значения
+            case Qt::Key_Backspace:
+            case Qt::Key_Delete:
+            case Qt::Key_Period:
+                clearValue(item->column(), item->row());
+                break;
+
+            // сохранение журнала
+            case Qt::Key_S:
+                // проверка, что зажат Ctrl
+                if (keyEvent->modifiers() != Qt::ControlModifier) return QMainWindow::eventFilter(obj, event);
+
+                // защита от дурака
+                if (!user || user->readonly || !journal || journal->readonly) return QMainWindow::eventFilter(obj, event);
+
+                on_buttonSave_clicked();
+                break;
+
+            // обновление журнала
+            case Qt::Key_R:
+                // проверка, что зажат Ctrl
+                if (keyEvent->modifiers() != Qt::ControlModifier) return QMainWindow::eventFilter(obj, event);
+
+                on_buttonRefresh_clicked();
+                break;
+            }
+        }
+    }*/
+
+    return QMainWindow::eventFilter(obj, event);
+}
+
 // процедура чтения настроек
 void MainWindow::readSettings()
 {
@@ -425,7 +525,7 @@ void MainWindow::changeMainMode(MainMode mode)
     currentMode = mode;
 
     // обновление заголовка окна
-    //updateWindowTitle();
+    updateWindowTitle();
 
     // обновление виджетов
     updateWidgets();
@@ -443,6 +543,27 @@ void MainWindow::updateWidgets()
     if (labelRefresh->parentWidget())
         labelRefresh->move(labelRefresh->parentWidget()->contentsRect().width() - labelRefresh->width() - labelRefresh->height(),
                 labelRefresh->parentWidget()->contentsRect().height() - labelRefresh->height() * 1.5);
+}
+
+// обновление заголовка окна
+void MainWindow::updateWindowTitle()
+{
+    QString title = tr("Мой журнал 2");
+
+    if (currentJournal)
+    {
+        title = tr("%1[*] - %2").arg(currentJournal->getName().replace("\n", " ")).arg(title);
+    }
+
+    if (journals && journals->loader->user)
+    {
+        title = tr("%1 - %2").arg(title).arg(journals->loader->user->name);
+        //if (user->readonly) title = tr("%1 [только просмотр]").arg(title);
+    }
+
+    this->setWindowTitle(title);
+
+    if (currentJournal) this->setWindowModified(currentJournal->isChanged);
 }
 
 // реакция на закрытие приложения

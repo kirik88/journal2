@@ -29,28 +29,59 @@ void JournalTableWidget::fillAll()
     // защита от дурака
     if (!journal) return;
 
-    // колонки и строки
-    setColumnCount(journal->columns.count());
-    //setRowCount(journal->recordsCount());
+    // блокируем сигналы, чтоб не срабатывали в тот момент, когда ячейки только заполняются значениями
+    blockSignals(true);
 
-    // заголовки колонок
+    // списки видимых колонок и строк
+    QList<QTableWidgetItem *> cols, rows;
+
+    // формируем список видимых колонок
     for (int col = 0; col < journal->columns.count(); col++)
     {
         Column *column = journal->columns.at(col);
 
-        QTableWidgetItem *col_item = new QTableWidgetItem(column->getName());
-        col_item->setData(Qt::UserRole, column->getId()); // храним идентификатор колонки
-        setHorizontalHeaderItem(col, col_item);
+        if (column->isVisible)
+        {
+            QTableWidgetItem *col_item = new QTableWidgetItem(column->getName());
+            col_item->setData(Qt::UserRole, column->getId()); // храним идентификатор колонки
+            cols.append(col_item);
+        }
     }
 
-    // текст записей
-    //for (int rec = 0; rec < journal->recordsCount(); rec++)
-    //{
-    //    QTableWidgetItem *rec_item = new QTableWidgetItem(journal->record(rec)->text);
-    //    rec_item->setData(Qt::UserRole, journal->record(rec)->id); // храним идентификатор записи
-    //    tableJournal->setVerticalHeaderItem(rec, rec_item);
-    //}
+    // присваиваем колонкам элементы
+    setColumnCount(cols.count());
+    for (int col = 0; col < cols.count(); col++)
+    {
+        setHorizontalHeaderItem(col, cols.at(col));
+    }
 
-    // значения
+    // формируем список видимых строк
+    /*for (int row = 0; row < journal->columns.count(); row++)
+    {
+        Column *column = journal->columns.at(col);
+
+        if (column->isVisible)
+        {
+            QTableWidgetItem *col_item = new QTableWidgetItem(column->getName());
+            col_item->setData(Qt::UserRole, column->getId()); // храним идентификатор колонки
+            cols.append(col_item);
+        }
+    }*/
+
+    // присваиваем строкам элементы
+    setRowCount(rows.count());
+    for (int row = 0; row < rows.count(); row++)
+    {
+        setVerticalHeaderItem(row, rows.at(row));
+    }
+
+    // выставляем значения в ячейки
     //fillValues();
+
+    // разблокируем сигналы
+    blockSignals(false);
+
+    // выравнивание по содержимому
+    resizeColumnsToContents();
+    resizeRowsToContents();
 }
