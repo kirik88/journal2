@@ -7,7 +7,7 @@ Column::Column(const QString &xml)
     isVisible = false;
     description = "";
 
-    // загружаем журнал
+    // загружаем колонку
     if (xml != "") load(xml);
 }
 

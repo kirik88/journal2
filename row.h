@@ -1,25 +1,18 @@
-#ifndef COLUMN_H
-#define COLUMN_H
+#ifndef ROW_H
+#define ROW_H
 
 #include <QtXml>
 #include <QString>
 #include <QDateTime>
 
-// строка для разбора даты и времени от сервера
-static QString dateTimeParseString = "yyyy-MM-dd HH:mm:ss";
-static QString defaultColumnName = "d.MM";
-
-class Column
+class Row
 {
 public:
-    Column(const QString &xml);
-    Column(Column *other);
+    Row(const QString &xml);
+    Row(Row *other);
 
     /* основные данные */
     QString name;
-    QDateTime date;
-    bool isVisible;
-    QString description;
 
     /* основные функции */
     bool load(QFile *file);
@@ -30,7 +23,7 @@ public:
     QString getName();
 
 private:
-    /* внутренние данные колонки */
+    /* внутренние данные строки */
     int id;
 
     /* функция парсинга xml-данных */
@@ -38,4 +31,4 @@ private:
 
 };
 
-#endif // COLUMN_H
+#endif // ROW_H

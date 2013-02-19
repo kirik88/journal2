@@ -67,6 +67,12 @@ void Journal::copyFrom(Journal *from)
     {
         columns.append(new Column(from->columns.at(i)));
     }
+
+    // копирование строк
+    for (int i = 0; from->rows.count() > i; i++)
+    {
+        rows.append(new Row(from->rows.at(i)));
+    }
 }
 
 // очистить данные журнала
@@ -92,6 +98,13 @@ void Journal::clear()
     {
         delete columns.at(0);
         columns.removeAt(0);
+    }
+
+    // очистка списка строк
+    while (rows.count() > 0)
+    {
+        delete rows.at(0);
+        rows.removeAt(0);
     }
 }
 
@@ -128,7 +141,7 @@ void Journal::parseNode(QDomNode node)
                 if (e.hasChildNodes()) parseNode(node.firstChild());
             }
             // для узлов-групп спускаемся ниже
-            else if (e.tagName() == "columns")
+            else if (e.tagName() == "columns" || e.tagName() == "rows")
             {
                 if (e.hasChildNodes()) parseNode(node.firstChild());
             }
@@ -189,6 +202,15 @@ void Journal::parseNode(QDomNode node)
                 node.save(out, 1);
 
                 columns.append(new Column(data));
+            }
+            // "вытаскиваем" строки
+            else if (e.tagName() == "row")
+            {
+                QString data;
+                QTextStream out(&data);
+                node.save(out, 1);
+
+                rows.append(new Row(data));
             }
         }
         node = node.nextSibling();

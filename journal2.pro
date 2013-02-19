@@ -29,7 +29,8 @@ SOURCES += main.cpp\
     journallist.cpp \
     column.cpp \
     journaltablewidget.cpp \
-    glass.cpp
+    glass.cpp \
+    row.cpp
 
 HEADERS  += mainwindow.h \
     journals.h \
@@ -40,7 +41,8 @@ HEADERS  += mainwindow.h \
     journallist.h \
     column.h \
     journaltablewidget.h \
-    glass.h
+    glass.h \
+    row.h
 
 FORMS    += mainwindow.ui
 

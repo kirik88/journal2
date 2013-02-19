@@ -5,6 +5,7 @@
 #include <QString>
 
 #include "column.h"
+#include "row.h"
 
 class Journal
 {
@@ -30,6 +31,7 @@ public:
 
     /* списки данных */
     QList<Column *> columns;
+    QList<Row *> rows;
 
     /* основные функции */
     bool load(QFile *file);

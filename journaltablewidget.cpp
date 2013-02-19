@@ -47,7 +47,6 @@ void JournalTableWidget::fillAll()
             cols.append(col_item);
         }
     }
-
     // присваиваем колонкам элементы
     setColumnCount(cols.count());
     for (int col = 0; col < cols.count(); col++)
@@ -56,18 +55,14 @@ void JournalTableWidget::fillAll()
     }
 
     // формируем список видимых строк
-    /*for (int row = 0; row < journal->columns.count(); row++)
+    for (int rw = 0; rw < journal->rows.count(); rw++)
     {
-        Column *column = journal->columns.at(col);
+        Row *row = journal->rows.at(rw);
 
-        if (column->isVisible)
-        {
-            QTableWidgetItem *col_item = new QTableWidgetItem(column->getName());
-            col_item->setData(Qt::UserRole, column->getId()); // храним идентификатор колонки
-            cols.append(col_item);
-        }
-    }*/
-
+        QTableWidgetItem *row_item = new QTableWidgetItem(row->getName());
+        row_item->setData(Qt::UserRole, row->getId()); // храним идентификатор строки
+        rows.append(row_item);
+    }
     // присваиваем строкам элементы
     setRowCount(rows.count());
     for (int row = 0; row < rows.count(); row++)

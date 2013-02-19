@@ -61,7 +61,8 @@ void MainWindow::prepareApplication()
     tableJournal->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     tableJournal->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
     tableJournal->setGridStyle(Qt::DotLine);
-    tableJournal->horizontalHeader()->setMinimumSectionSize(17);
+    tableJournal->horizontalHeader()->setMinimumSectionSize(25);
+    tableJournal->verticalHeader()->setMinimumSectionSize(25);
     tableJournal->parentWidget()->layout()->addWidget(tableJournal);
 
     // панель инструментов
