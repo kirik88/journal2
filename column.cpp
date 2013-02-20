@@ -1,11 +1,13 @@
 #include "column.h"
 
-Column::Column(const QString &xml)
+Column::Column(int id, const QString &xml)
 {
-    name = "";
-    date = QDateTime::currentDateTime();
-    isVisible = false;
-    description = "";
+    this->id = id;
+
+    this->name = "";
+    this->date = QDateTime::currentDateTime();
+    this->isVisible = false;
+    this->description = "";
 
     // загружаем колонку
     if (xml != "") load(xml);
@@ -14,6 +16,7 @@ Column::Column(const QString &xml)
 Column::Column(Column *other)
 {
     this->id = other->id;
+    this->extId = other->extId;
 
     this->name = other->name;
     this->date = other->date;
@@ -55,6 +58,12 @@ int Column::getId()
     return id;
 }
 
+// вернуть внешний идентификатор колонки
+int Column::getExtId()
+{
+    return extId;
+}
+
 // вернуть имя колонки; если оно не задано, имя сформируется автоматически
 QString Column::getName()
 {
@@ -76,7 +85,7 @@ void Column::parseNode(QDomNode node)
             // для корневого узла
             if (e.tagName() == "column")
             {
-                this->id = e.attribute("id").toInt();
+                this->extId = e.attribute("id").toInt();
                 if (e.hasChildNodes()) parseNode(node.firstChild());
             }
             // другие используем

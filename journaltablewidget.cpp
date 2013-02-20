@@ -47,7 +47,7 @@ void JournalTableWidget::fillAll()
 
         if (column->isVisible)
         {
-            QTableWidgetItem *col_item = new QTableWidgetItem(column->getName());
+            QTableWidgetItem *col_item = new QTableWidgetItem(column->getName() + "\t" + QString::number(column->getId()) + "/" + QString::number(column->getExtId()));
             col_item->setData(Qt::UserRole, column->getId()); // храним идентификатор колонки
             cols.append(col_item);
         }
@@ -64,7 +64,7 @@ void JournalTableWidget::fillAll()
     {
         Row *row = journal->rows.at(rw);
 
-        QTableWidgetItem *row_item = new QTableWidgetItem(row->getName());
+        QTableWidgetItem *row_item = new QTableWidgetItem(row->getName() + "\t" + QString::number(row->getId()) + "/" + QString::number(row->getExtId()));
         row_item->setData(Qt::UserRole, row->getId()); // храним идентификатор строки
         rows.append(row_item);
     }
@@ -88,18 +88,20 @@ void JournalTableWidget::fillAll()
             Value *val = journal->getValue(colId, rowId);
             if (val)
             {
+                item->setData(Qt::UserRole, val->getId()); // храним идентификатор значения
+
                 QString vstr = val->value;
 
                 if (vstr.toLower() == markNone)
-                    item->setData(Qt::UserRole, QPixmap(":/icons/16/markn"));
+                    item->setData(Qt::UserRole+1, QPixmap(":/icons/16/markn"));
                 else if (1 <= vstr.toInt() && vstr.toInt() <= 5)
-                    item->setData(Qt::UserRole, QPixmap(tr(":/icons/16/mark%1").arg(vstr.toInt())));
+                    item->setData(Qt::UserRole+1, QPixmap(tr(":/icons/16/mark%1").arg(vstr.toInt())));
                 else
                     item->setText(vstr);
-                    //item->setData(Qt::UserRole, QPixmap(":/icons/16/markNone"));
+                    //item->setData(Qt::UserRole+1, QPixmap(":/icons/16/markNone"));
 
                 // помечаем, есть ли комментарий
-                item->setData(Qt::UserRole+1, val->description != "");
+                item->setData(Qt::UserRole+2, val->description != "");
             }
 
             item->setTextAlignment(Qt::AlignCenter);

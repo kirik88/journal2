@@ -1,8 +1,10 @@
 #include "row.h"
 
-Row::Row(const QString &xml)
+Row::Row(int id, const QString &xml)
 {
-    name = "";
+    this->id = id;
+
+    this->name = "";
 
     // загружаем строку
     if (xml != "") load(xml);
@@ -11,6 +13,7 @@ Row::Row(const QString &xml)
 Row::Row(Row *other)
 {
     this->id = other->id;
+    this->extId = other->extId;
 
     this->name = other->name;
 }
@@ -49,6 +52,12 @@ int Row::getId()
     return id;
 }
 
+// вернуть внешний идентификатор строки
+int Row::getExtId()
+{
+    return extId;
+}
+
 // вернуть имя строки
 QString Row::getName()
 {
@@ -67,7 +76,7 @@ void Row::parseNode(QDomNode node)
             // для корневого узла
             if (e.tagName() == "row")
             {
-                this->id = e.attribute("id").toInt();
+                this->extId = e.attribute("id").toInt();
                 if (e.hasChildNodes()) parseNode(node.firstChild());
             }
             // другие используем

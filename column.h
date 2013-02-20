@@ -12,7 +12,7 @@ static QString defaultColumnName = "d.MM";
 class Column
 {
 public:
-    Column(const QString &xml);
+    Column(int id, const QString &xml);
     Column(Column *other);
 
     /* основные данные */
@@ -27,11 +27,13 @@ public:
 
     /* функции для работы с внутренними данными */
     int getId();
+    int getExtId();
     QString getName();
 
 private:
     /* внутренние данные колонки */
     int id;
+    int extId; // идентификатор во внешнем источнике
 
     /* функция парсинга xml-данных */
     void parseNode(QDomNode node);

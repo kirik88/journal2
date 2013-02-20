@@ -13,6 +13,10 @@
 
 #include "loaderenums.cpp"
 
+
+// идентификатор формы по-умолчанию при сохранении файла
+static QString boundary = "Jrn2kirik88r";
+
 class Loader : public QObject
 {
    Q_OBJECT
@@ -33,6 +37,7 @@ public:
     /* функции для работы с журналами */
     bool loadJournals(bool full = false, bool loop = true);
     bool loadJournal(int id, bool loop = true);
+    bool saveJournal(QFile *file, bool loop = true);
 
 private:
     /* внутренние данные */
@@ -52,6 +57,7 @@ signals:
     void loginFinished(Answer *answer); // после подключения к системе
     void journalsFinished(Answer *answer); // после загрузки журналов
     void journalFinished(Answer *answer); // после загрузки журнала
+    void saveJournalFinished(Answer *answer); // после сохранения журнала
 
 private slots:
     /* ответы сервера */

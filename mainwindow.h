@@ -21,9 +21,6 @@ static QString majorVersion = "0";
 static QString minorVersion = "2";
 static QString appVersion = majorVersion + "." + minorVersion;
 
-// идентификатор формы по-умолчанию при отправлении файла
-static QString boundary = "Jrn" + majorVersion + minorVersion + "r";
-
 // путь к файлу с общими настройками
 static QString commonIni;
 
@@ -97,6 +94,7 @@ private slots:
     /* кнопки на панели инструментов */
     void on_buttonJournals_clicked();
     void on_buttonJournal_clicked();
+    void on_buttonSave_clicked();
     void on_buttonRefresh_clicked();
     void on_buttonAbout_clicked();
     void on_buttonExit_clicked();

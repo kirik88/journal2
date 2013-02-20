@@ -8,11 +8,12 @@
 class Value
 {
 public:
-    Value(const QString &xml);
+    Value(int id, const QString &xml);
     Value(Value *other);
 
     /* основные данные */
     int columnId;
+    int rowId;
     int studentId;
     QString value;
     QString description;

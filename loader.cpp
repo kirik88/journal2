@@ -155,6 +155,68 @@ bool Loader::loadJournal(int id, bool loop)
     return true;
 }
 
+// сохранить журнал из файла (file)
+// вернёт false, если операцию отменили
+bool Loader::saveJournal(QFile *file, bool loop)
+{
+    if (operation != loIddle)
+    {
+        return false; //TODO:вызывать исключение
+    }
+    operation = loSaveJournal;
+    httpAborted = false;
+
+    if (!file->open(QIODevice::ReadOnly)) return false;
+
+    QString bnd = boundary;
+    for (int i = 0; i < 10; i++) bnd += tr("%1").arg(qrand() % 10);
+
+    // формируем строку запроса
+    //QUrl url = tr("http://mindspace.ru/files/qrcode/qr_card.jpg");
+    QUrl url = tr("http://%1/save/xml").arg(site);
+
+    // формируем запрос с массивом
+    QNetworkRequest request(url);
+    request.setRawHeader("Content-Type", QByteArray().append(tr("multipart/form-data; boundary=%1").arg(bnd)));
+
+    // формируем массив данных
+    QByteArray array;
+    array.append(QByteArray().append(tr("--%1\r\n").arg(bnd)));
+    array.append("Content-disposition: form-data; name=\"submit\"\r\n");
+    array.append("\r\n");
+    array.append(QByteArray().append(tr("Journal 2 Qt-app")));
+    array.append("\r\n");
+    array.append(QByteArray().append(tr("--%1\r\n").arg(bnd)));
+    array.append("Content-disposition: form-data; name=\"file\"; filename=\"journal.xml\"\r\n");
+    array.append("Content-Type: text/xml\r\n");
+    array.append("\r\n");
+    array.append(file->readAll());
+    array.append("\r\n");
+    array.append(QByteArray().append(tr("--%1--").arg(bnd)));
+
+    file->close();
+
+    // запускаем
+    reply = network->post(request, array);
+
+    // если нужно, "замираем" до конца выполнения запроса
+    if (loop)
+    {
+        httpLoop = new QEventLoop();
+
+        int res = httpLoop->exec();
+
+        delete httpLoop;
+        httpLoop = 0;
+
+        operation = loIddle;
+
+        return (res == 0);
+    }
+
+    return true;
+}
+
 // ответ сервера при логине
 void Loader::httpFinished()
 {
@@ -243,6 +305,10 @@ void Loader::httpFinished()
 
         case loJournal:
             emit journalFinished(lastAnswer);
+            break;
+
+        case loSaveJournal:
+            emit saveJournalFinished(lastAnswer);
             break;
 
         default:

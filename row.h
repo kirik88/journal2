@@ -8,7 +8,7 @@
 class Row
 {
 public:
-    Row(const QString &xml);
+    Row(int id, const QString &xml);
     Row(Row *other);
 
     /* основные данные */
@@ -20,11 +20,13 @@ public:
 
     /* функции для работы с внутренними данными */
     int getId();
+    int getExtId();
     QString getName();
 
 private:
     /* внутренние данные строки */
     int id;
+    int extId; // идентификатор во внешнем источнике
 
     /* функция парсинга xml-данных */
     void parseNode(QDomNode node);

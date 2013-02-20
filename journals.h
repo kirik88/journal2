@@ -27,6 +27,7 @@ public:
     /* функции работы с журналами */
     bool refreshJournals(QString *message);
     bool getJournal(int id, Journal *&journal, QString *message, bool reload = true);
+    bool saveJournal(Journal *&journal, QString *message);
 
     /* функции работы с данными */
     void clear();

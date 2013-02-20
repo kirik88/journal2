@@ -7,7 +7,7 @@ JournalItemDelegate::JournalItemDelegate()
 void JournalItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option,
                                const QModelIndex &index) const
 {
-    QPixmap icon = qvariant_cast<QPixmap>(index.data(Qt::UserRole));
+    QPixmap icon = qvariant_cast<QPixmap>(index.data(Qt::UserRole+1));
     if (!icon.isNull())
     {
         int x = option.rect.left() + (option.rect.right()  - option.rect.left() - icon.size().width() ) / 2;
@@ -16,7 +16,7 @@ void JournalItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &o
         painter->drawPixmap(x, y+1, icon);
 
         // отрисовать значок комментария
-        if (index.data(Qt::UserRole+1).toBool())
+        if (index.data(Qt::UserRole+2).toBool())
         {
             painter->drawPixmap(option.rect.right() - 12, y, QPixmap(":/images/comments_small"));
         }

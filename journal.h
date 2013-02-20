@@ -39,10 +39,13 @@ public:
     /* основные функции */
     bool load(QFile *file);
     bool load(const QString &xml);
+    bool save(QFile *file);
 
     /* функции для работы с данными */
     void copyFrom(Journal *from);
     void clear();
+    Column *getColumnExt(int extId);
+    Row *getRowExt(int extId);
     Value *getValue(int colId, int rowId);
 
     /* функции для работы с внутренними данными */

@@ -151,6 +151,61 @@ bool Journals::getJournal(int id, Journal *&journal, QString *message, bool relo
     return result;
 }
 
+// сохранить журнал
+bool Journals::saveJournal(Journal *&journal, QString *message)
+{
+    *message = "";
+
+    // защита от дурака
+    if (!journals) return false;
+
+    // сохраняем во временный файл
+    QTemporaryFile *journalFile = new QTemporaryFile();
+    journalFile->open();
+
+    if (!journal->save(journalFile))
+    {
+        if (journalFile)
+        {
+            journalFile->close();
+            delete journalFile;
+            journalFile = 0;
+        }
+
+        *message = tr("Произошла ошибка при сохранении журнала во временный файл.");
+
+        return false;
+    }
+    journalFile->flush();
+    journalFile->close();
+
+    // сохраняем журнал через загрузчик
+    if (loader->saveJournal(journalFile))
+    {
+        Answer *answer = loader->lastAnswer;
+
+        // при ошибке возвращаем сообщение
+        if (answer->getCode() != OK)
+        {
+            *message = answer->getResult();
+
+            delete journalFile;
+            return false;
+        };
+
+        // обновляем в списке либо добавляем сохранённый журнал
+        journals->appendRefresh(journal);
+    }
+    else // отменили
+    {
+        delete journalFile;
+        return false;
+    }
+
+    delete journalFile;
+    return true;
+}
+
 // очистка списка журналов
 void Journals::clear()
 {

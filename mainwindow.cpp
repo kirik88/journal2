@@ -395,7 +395,7 @@ void MainWindow::checkButtons()
 {
     // кнопки на панели инструментов
     buttonJournal->setVisible(currentJournal);
-    buttonSave->setVisible(false);//checkAllowEditJournal(currentJournal));
+    buttonSave->setVisible(checkAllowEditJournal(currentJournal));
     buttonTools->setVisible(false);//buttonSave->isVisible());
     buttonRefresh->setVisible(currentJournal);
     buttonProcessing->setVisible(false);//!user->readonly && !journal->readonly);
@@ -902,6 +902,41 @@ void MainWindow::on_buttonJournal_clicked()
     changeMainMode(mmJournal);
 }
 
+// реакция на нажатие кнопки "Сохранить"
+void MainWindow::on_buttonSave_clicked()
+{
+    // затемняем окно
+    glass->install(this, tr("Сохранение журнала ..."));
+
+    // сохраняем журнал
+    QString message;
+    if (journals->saveJournal(currentJournal, &message))
+    {
+        // помечаем, что журнал не изменялся
+        currentJournal->isChanged = false;
+        currentJournal->isNew = false;
+
+        // выводим данные журнала
+        tableJournal->setJournal(currentJournal);
+
+        // перестраиваем дерево журналов
+        fillTree();
+    }
+
+    // убираем затемнение в случае, если оно не требуется для диалоговых окон
+    if (useDialogGlass) glass->hide();
+    else glass->remove();
+
+    if (message != "")
+    {
+        QMessageBox::critical(this, tr("Сохранение журнала"),
+            tr("Ошибка при сохранении журнала:\n%1").arg(message));
+    }
+
+    // убираем затемнение
+    glass->remove();
+}
+
 // реакция на нажатие кнопки "Обновить"
 void MainWindow::on_buttonRefresh_clicked()
 {
@@ -913,15 +948,23 @@ void MainWindow::on_buttonRefresh_clicked()
 
     // загружаем журнал
     QString message;
-    if (journals->getJournal(currentJournal->getId(), currentJournal, &message))
+    Journal *loaded = 0;
+    if (journals->getJournal(currentJournal->getId(), loaded, &message))
     {
+        // работаем с копией загруженного журнала
+        if (currentJournal) delete currentJournal;
+        currentJournal = new Journal(loaded);
+
         // помечаем, что журнал не изменялся
         currentJournal->isChanged = false;
 
         // выводим данные журнала
         tableJournal->setJournal(currentJournal);
 
-        // переключение страницы
+        // перестраиваем дерево журналов
+        fillTree();
+
+        // переключаем страницу
         changeMainMode(mmJournal);
     }
 
@@ -1027,8 +1070,13 @@ void MainWindow::buttonOpen_clicked()
 
         // загружаем журнал
         QString message;
-        if (journals->getJournal(id, currentJournal, &message))
+        Journal *loaded = 0;
+        if (journals->getJournal(id, loaded, &message))
         {
+            // работаем с копией загруженного журнала
+            if (currentJournal) delete currentJournal;
+            currentJournal = new Journal(loaded);
+
             // помечаем, что журнал не изменялся
             currentJournal->isChanged = false;
 

@@ -1,11 +1,14 @@
 #include "value.h"
 
-Value::Value(const QString &xml)
+Value::Value(int id, const QString &xml)
 {
-    columnId = -1;
-    studentId = -1;
-    value = "";
-    description = "";
+    this->id = id;
+
+    this->columnId = -1;
+    this->rowId = -1;
+    this->studentId = -1;
+    this->value = "";
+    this->description = "";
 
     // загружаем значение
     if (xml != "") load(xml);
@@ -16,6 +19,7 @@ Value::Value(Value *other)
     this->id = other->id;
 
     this->columnId = other->columnId;
+    this->rowId = other->rowId;
     this->studentId = other->studentId;
     this->value = other->value;
     this->description = other->description;
@@ -66,7 +70,7 @@ void Value::parseNode(QDomNode node)
             // для корневого узла
             if (e.tagName() == "student_value")
             {
-                this->id = e.attribute("id").toInt();
+                //this->extId = e.attribute("id").toInt();
                 if (e.hasChildNodes()) parseNode(node.firstChild());
             }
             // другие используем
@@ -76,7 +80,8 @@ void Value::parseNode(QDomNode node)
             }
             else if (e.tagName() == "student")
             {
-                this->studentId = e.text().toInt();
+                this->rowId = e.text().toInt();
+                this->studentId = this->rowId;
             }
             else if (e.tagName() == "value")
             {
