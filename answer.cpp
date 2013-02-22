@@ -53,7 +53,7 @@ void Answer::parseNode(QDomNode node)
                 this->result = e.text();
             }
             // для комбинированных ответов сохраняем весь вывод
-            else if (e.tagName() == "journals")
+            else if (e.tagName() == "journals" || e.tagName() == "classes" || e.tagName() == "courses" || e.tagName() == "teachers")
             {
                 QString data;
                 QTextStream out(&data);

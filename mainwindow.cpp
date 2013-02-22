@@ -602,7 +602,7 @@ void MainWindow::fillTree()
 
         // в зависимости от прав на запись разная иконка
         QIcon icon(journal->isDeleted ? ":/icons/delete" : (journal->isArchived ? ":/icons/journal_archived" :
-                  (!checkAllowEditJournal(journal) ? ":/icons/journal" : ":/icons/journal_write")
+                  (checkAllowEditJournal(journal) ? ":/icons/journal_write" : ":/icons/journal")
                 ));
 
         QTreeWidgetItem *item = new QTreeWidgetItem(
@@ -660,8 +660,8 @@ void MainWindow::fillTree()
     }
 
     // добавление строки "Новый журнал"
-    //if (!user->readonly)
-    //{
+    if (checkAllowCreateJournal())
+    {
         // иконка
         QIcon icon(":/icons/new");
 
@@ -705,7 +705,7 @@ void MainWindow::fillTree()
         item->setData(0, Qt::UserRole, 0);
 
         ui->treeJournals->setItemWidget(item, 5, frame);
-    //}
+    }
 
     // выравнивание по содержимому
     for (int j = 0; j < ui->treeJournals->header()->count(); j++)
@@ -770,6 +770,17 @@ bool MainWindow::checkSaveJournal(const QString &text, bool allowSave)
     return true;
 }
 
+// проверка на возможность создания нового журнала
+bool MainWindow::checkAllowCreateJournal()
+{
+    if (!journals || !journals->loader->user) return false;
+
+    User *user = journals->loader->user;
+
+    // создавать новые журналы разрешается только админу, заучу и учителю
+    return (user->userType == utAdmin || user->userType == utDirector || user->userType == utTeacher);
+}
+
 // проверка на возможность редактирования журнала
 bool MainWindow::checkAllowEditJournal(Journal *journal)
 {
@@ -781,7 +792,7 @@ bool MainWindow::checkAllowEditJournal(Journal *journal)
     if (user->userType == utAdmin) return true;
 
     // завуч и учитель может редактировать только неархивированный неудалённый журнал
-    if (user->userType == utDirector || user->userType == utTeacher) return (!journal->isDeleted && journal->isArchived);
+    if (user->userType == utDirector || user->userType == utTeacher) return (!journal->isDeleted && !journal->isArchived);
 
     // остальным редактирование запрещено
     return false;
@@ -828,28 +839,20 @@ void MainWindow::on_buttonLogin_clicked()
 
     // подключение
     QString message;
-    if (journals->tryLogin(login, password, &message))
+    if (
+            journals->tryLogin(login, password, &message) && // подключаемся
+            journals->refreshJournals(&message) && // грузим список журналов
+            journals->refreshData(&message) // грузим список классов, предметов и учителей
+        )
     {
-        if (journals->refreshJournals(&message))
-        {
-            // строим дерево журналов
-            fillTree();
+        // строим дерево журналов
+        fillTree();
 
-            // меняем страницу
-            changeMainMode(mmJournals);
+        // меняем страницу
+        changeMainMode(mmJournals);
 
-            // сохраняем настройки авторизации
-            writeSettings(sLogin);
-        }
-        else
-        {
-            // если сообщения нет - операцию отменили
-            if (message != "")
-            {
-                ui->labelLoginError->setText(tr("Ошибка при получении журналов: ") + message);
-                ui->labelLoginError->show();
-            }
-        }
+        // сохраняем настройки авторизации
+        writeSettings(sLogin);
     }
     else
     {
@@ -915,9 +918,6 @@ void MainWindow::on_buttonSave_clicked()
         // помечаем, что журнал не изменялся
         currentJournal->isChanged = false;
         currentJournal->isNew = false;
-
-        // выводим данные журнала
-        tableJournal->setJournal(currentJournal);
 
         // перестраиваем дерево журналов
         fillTree();
@@ -1031,6 +1031,10 @@ void MainWindow::labelRefresh_clicked()
         }
         else
         {
+            // убираем затемнение в случае, если оно не требуется для диалоговых окон
+            if (useDialogGlass) glass->hide();
+            else glass->remove();
+
             // если сообщения нет - операцию отменили
             if (message != "")
             {
@@ -1057,7 +1061,7 @@ void MainWindow::buttonOpen_clicked()
     // создаём новый журнал, если вместо идентификтора число 0
     if (id == 0)
     {
-        //buttonNew_clicked();
+        buttonCreate_clicked();
     }
     // иначе загружаем указанный
     else
@@ -1100,6 +1104,78 @@ void MainWindow::buttonOpen_clicked()
         // убираем затемнение
         glass->remove();
     }
+}
+
+// реакция на нажатие кнопки "Новый журнал" дерева журналов
+void MainWindow::buttonCreate_clicked()
+{
+    // диалоговое окно нового журнала
+    JournalDialog *dialog = new JournalDialog(journals);
+    dialog->setWindowFlags(Qt::Dialog | Qt::WindowCloseButtonHint);
+
+    // проверяем на нажатие
+    bool ok = false;
+    while (!ok)
+    {
+        // затемняем окно
+        if (useDialogGlass) glass->install(this);
+
+        // отображаем окно
+        if (dialog->exec() == QDialog::Accepted)
+        {
+            // затемняем окно
+            glass->install(this, tr("Создание нового журнала ..."));
+
+            // создаём журнал
+            Journal *created = new Journal();
+            created->name = dialog->name;
+            created->classId = dialog->classId;
+            created->courseId = dialog->courseId;
+            created->teacherId = dialog->teacherId;
+            created->description = dialog->description;
+            created->isAuto = true;
+
+            // сохраняем журнал как новый
+            QString message;
+            if (journals->createJournal(created, &message))
+            {
+                glass->install(this, tr("Обновление дерева журналов ..."));
+
+                QString message;
+                if (journals->refreshJournals(&message))
+                {
+                    // перестраиваем дерево журналов
+                    fillTree();
+
+                    // создание прошло успешно
+                    ok = true;
+                }
+            }
+
+            // убираем затемнение в случае, если оно не требуется для диалоговых окон
+            if (useDialogGlass) glass->hide();
+            else glass->remove();
+
+            if (!ok && message != "")
+            {
+                QMessageBox::critical(this, tr("Создание журнала"),
+                    tr("Ошибка при создании журнала:\n%1").arg(message));
+            }
+
+            delete created;
+        }
+        else
+        {
+            // отменили
+            ok = true;
+        }
+
+        // убираем затемнение
+        if (!useDialogGlass) glass->remove();
+    }
+
+    // убираем затемнение
+    glass->remove();
 }
 
 // реакция на изменение данных журнала внутри виджета с таблицей

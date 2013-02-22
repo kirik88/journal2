@@ -1,44 +1,30 @@
-#include "user.h"
+#include "class.h"
 
-User::User(int id, QString login, QString password)
+Class::Class(const QString &xml)
 {
-    this->id = id;
-
-    this->login = login;
-    this->password = password;
     this->name = "";
-    this->nameFull = "";
+    this->grade = -1;
+    this->startYear = -1;
+    this->isArchived = false;
     this->description = "";
-    this->userType = utUnknown;
-}
-
-User::User(const QString &xml)
-{
-    this->login = login;
-    this->password = password;
-    this->name = "";
-    this->nameFull = "";
-    this->description = "";
-    this->userType = utUnknown;
 
     // загружаем колонку
     if (xml != "") load(xml);
 }
 
-User::User(User *other)
+Class::Class(Class *other)
 {
     this->id = other->id;
 
-    this->login = other->login;
-    this->password = other->password;
     this->name = other->name;
-    this->nameFull = other->nameFull;
+    this->grade = other->grade;
+    this->startYear = other->startYear;
+    this->isArchived = other->isArchived;
     this->description = other->description;
-    this->userType = other->userType;
 }
 
 // загрузка класса из файла
-bool User::load(QFile *file)
+bool Class::load(QFile *file)
 {
     QDomDocument doc;
     if (!doc.setContent(file->readAll())) return false;
@@ -52,7 +38,7 @@ bool User::load(QFile *file)
 }
 
 // загрузка класса из строки
-bool User::load(const QString &xml)
+bool Class::load(const QString &xml)
 {
     QDomDocument doc;
     if (!doc.setContent(xml)) return false;
@@ -65,26 +51,20 @@ bool User::load(const QString &xml)
     return true;
 }
 
-// вернуть идентификатор пользователя
-int User::getId()
+// вернуть идентификатор класса
+int Class::getId()
 {
     return id;
 }
 
-// установить идентификатор пользователя
-void User::setId(int id)
-{
-    this->id = id;
-}
-
 // вернуть имя класса
-QString User::getName()
+QString Class::getName()
 {
     return this->name;
 }
 
 // парсим xml
-void User::parseNode(QDomNode node)
+void Class::parseNode(QDomNode node)
 {
     while (!node.isNull())
     {
@@ -92,7 +72,7 @@ void User::parseNode(QDomNode node)
         if (!e.isNull())
         {
             // для корневого узла
-            if (e.tagName() == "user")
+            if (e.tagName() == "class")
             {
                 this->id = e.attribute("id").toInt();
                 if (e.hasChildNodes()) parseNode(node.firstChild());
@@ -102,9 +82,17 @@ void User::parseNode(QDomNode node)
             {
                 this->name = e.text();
             }
-            else if (e.tagName() == "name_full")
+            else if (e.tagName() == "grade")
             {
-                this->nameFull = e.text();
+                this->grade = e.text().toInt();
+            }
+            else if (e.tagName() == "start_year")
+            {
+                this->startYear = e.text().toInt();
+            }
+            else if (e.tagName() == "archived")
+            {
+               this->isArchived = (e.text().toInt() == 1);
             }
             else if (e.tagName() == "description")
             {

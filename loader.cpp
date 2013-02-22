@@ -120,6 +120,41 @@ bool Loader::loadJournals(bool full, bool loop)
     return true;
 }
 
+// загрузить все доступные пользователю данные (классы, предметы и учителей)
+// вернёт false, если операцию отменили
+bool Loader::loadData(bool loop)
+{
+    if (operation != loIddle)
+    {
+        return false; //TODO:вызывать исключение
+    }
+    operation = loData;
+    httpAborted = false;
+
+    // формируем строку запроса
+    QUrl url = QString("http://%1/data/xml").arg(site);
+
+    // запускаем
+    reply = network->get(QNetworkRequest(url));
+
+    // если нужно, "замираем" до конца выполнения запроса
+    if (loop)
+    {
+        httpLoop = new QEventLoop();
+
+        int res = httpLoop->exec();
+
+        delete httpLoop;
+        httpLoop = 0;
+
+        operation = loIddle;
+
+        return (res == 0);
+    }
+
+    return true;
+}
+
 // загрузить журнал по его идентификатору (id)
 // вернёт false, если операцию отменили
 bool Loader::loadJournal(int id, bool loop)
@@ -291,7 +326,7 @@ void Loader::httpFinished()
             // при успехе сохраняем данные пользователя
             if (lastAnswer->getCode() == OK)
             {
-                user->id = lastAnswer->getValue("id").toInt();
+                user->setId(lastAnswer->getValue("id").toInt());
                 user->name = lastAnswer->getValue("name");
                 user->userType = UserType(lastAnswer->getValue("user_type").toInt());
             }
@@ -309,6 +344,10 @@ void Loader::httpFinished()
 
         case loSaveJournal:
             emit saveJournalFinished(lastAnswer);
+            break;
+
+        case loData:
+            emit dataFinished(lastAnswer);
             break;
 
         default:

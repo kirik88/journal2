@@ -20,13 +20,11 @@ public:
 
     /* функции для работы с внутренними данными */
     int getId();
-    int getExtId();
     QString getName();
 
 private:
     /* внутренние данные строки */
     int id;
-    int extId; // идентификатор во внешнем источнике
 
     /* функция парсинга xml-данных */
     void parseNode(QDomNode node);

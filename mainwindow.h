@@ -14,6 +14,8 @@
 #include "journals.h"
 #include "journaltablewidget.h"
 
+#include "journaldialog.h"
+
 #include "enums.cpp"
 
 // версия приложения
@@ -84,6 +86,7 @@ private:
     void updateWindowTitle();
     void fillTree();
     bool checkSaveJournal(const QString &text, bool allowSave = true);
+    bool checkAllowCreateJournal();
     bool checkAllowEditJournal(Journal *journal);
 
 private slots:
@@ -102,7 +105,8 @@ private slots:
     /* кнопки дерева журналов */
     void labelBack_clicked(); // надпись-кнопка "Вернуться к журналу"
     void labelRefresh_clicked(); // надпись-кнопка "Обновить"
-    void buttonOpen_clicked(); // кнопка "Открыть"
+    void buttonOpen_clicked(); // кнопка "Открыть журнал"
+    void buttonCreate_clicked(); // кнопка "Новый журнал"
 
     /* таблица данных журнала */
     void journal_changed();

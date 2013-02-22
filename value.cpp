@@ -6,7 +6,6 @@ Value::Value(int id, const QString &xml)
 
     this->columnId = -1;
     this->rowId = -1;
-    this->studentId = -1;
     this->value = "";
     this->description = "";
 
@@ -20,7 +19,6 @@ Value::Value(Value *other)
 
     this->columnId = other->columnId;
     this->rowId = other->rowId;
-    this->studentId = other->studentId;
     this->value = other->value;
     this->description = other->description;
 }
@@ -78,10 +76,9 @@ void Value::parseNode(QDomNode node)
             {
                 this->columnId = e.text().toInt();
             }
-            else if (e.tagName() == "student")
+            else if (e.tagName() == "row")
             {
                 this->rowId = e.text().toInt();
-                this->studentId = this->rowId;
             }
             else if (e.tagName() == "value")
             {

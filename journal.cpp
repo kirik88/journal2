@@ -67,44 +67,6 @@ bool Journal::save(QFile *file)
     if (this->description != "") journal.setAttribute("description", this->description);
     journal.setAttribute("deleted", this->isDeleted ? "1" : "0");
 
-/*
-
-    $xmlstr .= "   <columns>\n";
-    while ($row = mysql_fetch_object($queryResult))
-    {
-        $xmlstr .= "  <column id=\"{$row->id}\">\n";
-        $xmlstr .= "   <name>{$row->name}</name>\n";
-        $xmlstr .= "   <date>{$row->date}</date>\n";
-        $xmlstr .= "   <visible>{$row->visible}</visible>\n";
-        $xmlstr .= "   <description>{$row->description}</description>\n";
-        $xmlstr .= "  </column>\n";
-    }
-    $xmlstr .= "   </columns>\n";
-
-    // обрабатываем запрос
-    $xmlstr .= "   <rows>\n";
-    while ($row = mysql_fetch_object($queryResult))
-    {
-        $xmlstr .= "  <row id=\"{$row->student}\">\n";
-        $xmlstr .= "   <name>{$row->student_name}</name>\n";
-        $xmlstr .= "  </row>\n";
-    }
-    $xmlstr .= "   </rows>\n";
-
-    $xmlstr .= "   <student_values>\n";
-    while ($row = mysql_fetch_object($queryResult))
-    {
-        $xmlstr .= "  <student_value id=\"{$row->id}\">\n";
-        $xmlstr .= "   <column>{$row->column}</column>\n";
-        $xmlstr .= "   <student>{$row->student}</student>\n";
-        $xmlstr .= "   <value>{$row->value}</value>\n";
-        $xmlstr .= "   <description>{$row->description}</description>\n";
-        $xmlstr .= "  </student_value>\n";
-    }
-    $xmlstr .= "   </student_values>\n";
-
-*/
-
     // колонки
     element = doc.createElement("columns");
     for (int col = 0; col < this->columns.count(); col++)
@@ -112,8 +74,7 @@ bool Journal::save(QFile *file)
         Column *column = this->columns.at(col);
 
         child = doc.createElement("column");
-        child.setAttribute("id", column->getExtId());
-        child.setAttribute("innerId", column->getId());
+        child.setAttribute("id", column->getId());
         if (column->name != "") child.setAttribute("name", column->name);
         child.setAttribute("date", column->date.toString(dateTimeParseString));
         child.setAttribute("visible", column->isVisible ? "1" : "0");
@@ -131,10 +92,10 @@ bool Journal::save(QFile *file)
         if (val->value != "")
         {
             child = doc.createElement("student_value");
-            //child.setAttribute("id", val->getExtId());
-            child.setAttribute("innerColumnId", val->columnId);
-            child.setAttribute("studentId", val->studentId);
+            child.setAttribute("columnId", val->columnId);
+            child.setAttribute("rowId", val->rowId);
             child.setAttribute("value", val->value);
+            if (val->description != "") child.setAttribute("description", val->description);
             element.appendChild(child);
         }
     }
@@ -232,27 +193,27 @@ void Journal::clear()
     }
 }
 
-// вернуть колонку по внешнему идентификатору
-Column *Journal::getColumnExt(int extId)
+// вернуть колонку по идентификатору
+Column *Journal::getColumn(int id)
 {
     for (int col = 0; columns.count() > col; col++)
     {
         Column *column = columns.at(col);
 
-        if (column->getExtId() == extId) return column;
+        if (column->getId() == id) return column;
     }
 
     return 0;
 }
 
-// вернуть строку по внешнему идентификатору
-Row *Journal::getRowExt(int extId)
+// вернуть строку по идентификатору
+Row *Journal::getRow(int id)
 {
     for (int rw = 0; rows.count() > rw; rw++)
     {
         Row *row = rows.at(rw);
 
-        if (row->getExtId() == extId) return row;
+        if (row->getId() == id) return row;
     }
 
     return 0;
@@ -275,6 +236,12 @@ Value *Journal::getValue(int colId, int rowId)
 int Journal::getId()
 {
     return id;
+}
+
+// установить идентификатор журнала
+void Journal::setId(int id)
+{
+    this->id = id;
 }
 
 // вернуть имя журнала; если оно не задано, имя сформируется автоматически
@@ -382,25 +349,7 @@ void Journal::parseNode(QDomNode node)
                 QTextStream out(&data);
                 node.save(out, 1);
 
-                Value *val = new Value(values.count(), data);
-
-                // ищем нужные колонку и строку для данного значения
-                Column *column = getColumnExt(val->columnId);
-                Row *row = getRowExt(val->rowId);
-
-                // если что-то не нашлось - значение вообще не из этого журнала o_0
-                if (!column || !row)
-                {
-                    delete val;
-                }
-                else
-                {
-                    // меняем идентификаторы на внутренние
-                    val->columnId = column->getId();
-                    val->rowId = row->getId();
-
-                    values.append(val);
-                }
+                values.append(new Value(values.count(), data));
             }
         }
         node = node.nextSibling();

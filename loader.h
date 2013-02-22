@@ -39,6 +39,9 @@ public:
     bool loadJournal(int id, bool loop = true);
     bool saveJournal(QFile *file, bool loop = true);
 
+    /* функции для работы с данными */
+    bool loadData(bool loop = true);
+
 private:
     /* внутренние данные */
     LoaderOperation operation; // текущая операция загрузчика
@@ -58,6 +61,7 @@ signals:
     void journalsFinished(Answer *answer); // после загрузки журналов
     void journalFinished(Answer *answer); // после загрузки журнала
     void saveJournalFinished(Answer *answer); // после сохранения журнала
+    void dataFinished(Answer *answer); // после загрузки данных
 
 private slots:
     /* ответы сервера */

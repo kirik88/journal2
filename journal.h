@@ -11,7 +11,7 @@
 class Journal
 {
 public:
-    Journal(const QString &xml);
+    Journal(const QString &xml = "");
     Journal(Journal *other);
     ~Journal();
 
@@ -44,12 +44,13 @@ public:
     /* функции для работы с данными */
     void copyFrom(Journal *from);
     void clear();
-    Column *getColumnExt(int extId);
-    Row *getRowExt(int extId);
+    Column *getColumn(int id);
+    Row *getRow(int id);
     Value *getValue(int colId, int rowId);
 
     /* функции для работы с внутренними данными */
     int getId();
+    void setId(int id);
     QString getName();
 
 private:

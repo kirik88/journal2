@@ -47,7 +47,7 @@ void JournalTableWidget::fillAll()
 
         if (column->isVisible)
         {
-            QTableWidgetItem *col_item = new QTableWidgetItem(column->getName() + "\t" + QString::number(column->getId()) + "/" + QString::number(column->getExtId()));
+            QTableWidgetItem *col_item = new QTableWidgetItem(column->getName() + "\t /" + QString::number(column->getId()));
             col_item->setData(Qt::UserRole, column->getId()); // храним идентификатор колонки
             cols.append(col_item);
         }
@@ -64,7 +64,7 @@ void JournalTableWidget::fillAll()
     {
         Row *row = journal->rows.at(rw);
 
-        QTableWidgetItem *row_item = new QTableWidgetItem(row->getName() + "\t" + QString::number(row->getId()) + "/" + QString::number(row->getExtId()));
+        QTableWidgetItem *row_item = new QTableWidgetItem(row->getName() + "\t /" + QString::number(row->getId()));
         row_item->setData(Qt::UserRole, row->getId()); // храним идентификатор строки
         rows.append(row_item);
     }

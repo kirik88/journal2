@@ -7,13 +7,22 @@ Journals::Journals(Loader *loader) : QObject(0)
 
     // инициализируем переменные
     journals = new JournalList();
+    classes = new QList<Class *>();
+    courses = new QList<Course *>();
+    teachers = new QList<User *>();
 }
 
 Journals::~Journals()
 {
     abort();
+
+    clear();
+
     delete loader;
     if (journals) delete journals;
+    if (classes) delete classes;
+    if (courses) delete courses;
+    if (teachers) delete teachers;
 }
 
 // попробовать подключиться к системе под логином (login) и паролем (password), с выводом сообщения об ошибке (message)
@@ -63,6 +72,9 @@ bool Journals::refreshJournals(QString *message)
             return false;
         };
 
+        // очищаем уже имеющийся список журналов
+        clearJournals();
+
         // формируем на основе ответа список журналов
         JournalList *tmp = new JournalList(answer->getValue("journals"));
 
@@ -75,6 +87,14 @@ bool Journals::refreshJournals(QString *message)
     }
 
     return false;
+}
+
+// создать журнал
+bool Journals::createJournal(Journal *&journal, QString *message)
+{
+    journal->setId(0);
+
+    return saveJournal(journal, message);
 }
 
 // загрузить журнал по его идентификатору (id) с необходимостью перезагрузки его данных (reload)
@@ -193,6 +213,10 @@ bool Journals::saveJournal(Journal *&journal, QString *message)
             return false;
         };
 
+        // обновляем данные журнала
+        journal->setId(answer->getValue("id").toInt());
+        journal->changed = QDateTime::fromString(answer->getValue("changed"), dateTimeParseString);
+
         // обновляем в списке либо добавляем сохранённый журнал
         journals->appendRefresh(journal);
     }
@@ -206,10 +230,196 @@ bool Journals::saveJournal(Journal *&journal, QString *message)
     return true;
 }
 
-// очистка списка журналов
+// обновить/загрузить список классов, предметов и учителей
+bool Journals::refreshData(QString *message)
+{
+    *message = "";
+
+    // загружаем через загрузчик
+    if (loader->loadData())
+    {
+        Answer *answer = loader->lastAnswer;
+
+        // при ошибке возвращаем сообщение
+        if (answer->getCode() != OK)
+        {
+            *message = answer->getResult();
+            return false;
+        };
+
+        // очищаем уже имеющийся список классов
+        clearClasses();
+
+        // формируем на основе ответа список классов
+        QDomDocument doc;
+        if (doc.setContent(answer->getValue("classes")))
+        {
+            QDomElement docElem = doc.documentElement();
+
+            // переходим к парсингу
+            parseClasses(docElem);
+        }
+
+        // формируем на основе ответа список предметов
+        if (doc.setContent(answer->getValue("courses")))
+        {
+            QDomElement docElem = doc.documentElement();
+
+            // переходим к парсингу
+            parseCourses(docElem);
+        }
+
+        // формируем на основе ответа список учителей
+        if (doc.setContent(answer->getValue("teachers")))
+        {
+            QDomElement docElem = doc.documentElement();
+
+            // переходим к парсингу
+            parseTeachers(docElem);
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+// парсим xml с классами
+void Journals::parseClasses(QDomNode node)
+{
+    while (!node.isNull())
+    {
+        QDomElement e = node.toElement(); // пробуем преобразовать узел в элемент
+        if (!e.isNull())
+        {
+            // для корневого узла спускаемся ниже
+            if (e.tagName() == "classes")
+            {
+                if (e.hasChildNodes()) parseClasses(node.firstChild());
+            }
+            // для узлов-журналов
+            else if (e.tagName() == "class")
+            {
+                QString data;
+                QTextStream out(&data);
+                node.save(out, 1);
+
+                classes->append(new Class(data));
+
+                //qDebug() << "Class: " << classes->at(classes->count() - 1)->getName();
+            }
+        }
+        node = node.nextSibling();
+    }
+}
+
+// парсим xml с предметами
+void Journals::parseCourses(QDomNode node)
+{
+    while (!node.isNull())
+    {
+        QDomElement e = node.toElement(); // пробуем преобразовать узел в элемент
+        if (!e.isNull())
+        {
+            // для корневого узла спускаемся ниже
+            if (e.tagName() == "courses")
+            {
+                if (e.hasChildNodes()) parseCourses(node.firstChild());
+            }
+            // для узлов-журналов
+            else if (e.tagName() == "course")
+            {
+                QString data;
+                QTextStream out(&data);
+                node.save(out, 1);
+
+                courses->append(new Course(data));
+
+                //qDebug() << "Course: " << courses->at(courses->count() - 1)->getName();
+            }
+        }
+        node = node.nextSibling();
+    }
+}
+
+// парсим xml с учителями
+void Journals::parseTeachers(QDomNode node)
+{
+    while (!node.isNull())
+    {
+        QDomElement e = node.toElement(); // пробуем преобразовать узел в элемент
+        if (!e.isNull())
+        {
+            // для корневого узла спускаемся ниже
+            if (e.tagName() == "teachers")
+            {
+                if (e.hasChildNodes()) parseTeachers(node.firstChild());
+            }
+            // для узлов-журналов
+            else if (e.tagName() == "user")
+            {
+                QString data;
+                QTextStream out(&data);
+                node.save(out, 1);
+
+                teachers->append(new User(data));
+
+                //qDebug() << "Teacher: " << teachers->at(teachers->count() - 1)->getName();
+            }
+        }
+        node = node.nextSibling();
+    }
+}
+
+// очистка данных
 void Journals::clear()
+{
+    clearJournals();
+    clearClasses();
+    clearCourses();
+    clearTeachers();
+}
+
+// очистка списка журналов
+void Journals::clearJournals()
 {
     if (!journals) return;
 
     journals->clear();
+}
+
+// очистка списка классов
+void Journals::clearClasses()
+{
+    if (!classes) return;
+
+    while (classes->count() > 0)
+    {
+        delete classes->at(0);
+        classes->removeAt(0);
+    }
+}
+
+// очистка списка предметов
+void Journals::clearCourses()
+{
+    if (!courses) return;
+
+    while (courses->count() > 0)
+    {
+        delete courses->at(0);
+        courses->removeAt(0);
+    }
+}
+
+// очистка списка учителей
+void Journals::clearTeachers()
+{
+    if (!teachers) return;
+
+    while (teachers->count() > 0)
+    {
+        delete teachers->at(0);
+        teachers->removeAt(0);
+    }
 }

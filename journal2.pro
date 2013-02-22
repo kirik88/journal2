@@ -32,7 +32,10 @@ SOURCES += main.cpp\
     glass.cpp \
     row.cpp \
     value.cpp \
-    journalitemdelegate.cpp
+    journalitemdelegate.cpp \
+    journaldialog.cpp \
+    class.cpp \
+    course.cpp
 
 HEADERS  += mainwindow.h \
     journals.h \
@@ -46,9 +49,13 @@ HEADERS  += mainwindow.h \
     glass.h \
     row.h \
     value.h \
-    journalitemdelegate.h
+    journalitemdelegate.h \
+    journaldialog.h \
+    class.h \
+    course.h
 
-FORMS    += mainwindow.ui
+FORMS    += mainwindow.ui \
+    journaldialog.ui
 
 RESOURCES += \
     journal2.qrc

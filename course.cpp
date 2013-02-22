@@ -1,44 +1,24 @@
-#include "user.h"
+#include "course.h"
 
-User::User(int id, QString login, QString password)
+Course::Course(const QString &xml)
 {
-    this->id = id;
-
-    this->login = login;
-    this->password = password;
     this->name = "";
-    this->nameFull = "";
     this->description = "";
-    this->userType = utUnknown;
-}
-
-User::User(const QString &xml)
-{
-    this->login = login;
-    this->password = password;
-    this->name = "";
-    this->nameFull = "";
-    this->description = "";
-    this->userType = utUnknown;
 
     // загружаем колонку
     if (xml != "") load(xml);
 }
 
-User::User(User *other)
+Course::Course(Course *other)
 {
     this->id = other->id;
 
-    this->login = other->login;
-    this->password = other->password;
     this->name = other->name;
-    this->nameFull = other->nameFull;
     this->description = other->description;
-    this->userType = other->userType;
 }
 
 // загрузка класса из файла
-bool User::load(QFile *file)
+bool Course::load(QFile *file)
 {
     QDomDocument doc;
     if (!doc.setContent(file->readAll())) return false;
@@ -52,7 +32,7 @@ bool User::load(QFile *file)
 }
 
 // загрузка класса из строки
-bool User::load(const QString &xml)
+bool Course::load(const QString &xml)
 {
     QDomDocument doc;
     if (!doc.setContent(xml)) return false;
@@ -65,26 +45,20 @@ bool User::load(const QString &xml)
     return true;
 }
 
-// вернуть идентификатор пользователя
-int User::getId()
+// вернуть идентификатор класса
+int Course::getId()
 {
     return id;
 }
 
-// установить идентификатор пользователя
-void User::setId(int id)
-{
-    this->id = id;
-}
-
 // вернуть имя класса
-QString User::getName()
+QString Course::getName()
 {
     return this->name;
 }
 
 // парсим xml
-void User::parseNode(QDomNode node)
+void Course::parseNode(QDomNode node)
 {
     while (!node.isNull())
     {
@@ -92,7 +66,7 @@ void User::parseNode(QDomNode node)
         if (!e.isNull())
         {
             // для корневого узла
-            if (e.tagName() == "user")
+            if (e.tagName() == "course")
             {
                 this->id = e.attribute("id").toInt();
                 if (e.hasChildNodes()) parseNode(node.firstChild());
@@ -101,10 +75,6 @@ void User::parseNode(QDomNode node)
             else if (e.tagName() == "name")
             {
                 this->name = e.text();
-            }
-            else if (e.tagName() == "name_full")
-            {
-                this->nameFull = e.text();
             }
             else if (e.tagName() == "description")
             {

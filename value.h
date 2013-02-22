@@ -14,7 +14,6 @@ public:
     /* основные данные */
     int columnId;
     int rowId;
-    int studentId;
     QString value;
     QString description;
 

@@ -13,7 +13,6 @@ Row::Row(int id, const QString &xml)
 Row::Row(Row *other)
 {
     this->id = other->id;
-    this->extId = other->extId;
 
     this->name = other->name;
 }
@@ -52,12 +51,6 @@ int Row::getId()
     return id;
 }
 
-// вернуть внешний идентификатор строки
-int Row::getExtId()
-{
-    return extId;
-}
-
 // вернуть имя строки
 QString Row::getName()
 {
@@ -76,7 +69,7 @@ void Row::parseNode(QDomNode node)
             // для корневого узла
             if (e.tagName() == "row")
             {
-                this->extId = e.attribute("id").toInt();
+                this->id = e.attribute("id").toInt();
                 if (e.hasChildNodes()) parseNode(node.firstChild());
             }
             // другие используем

@@ -8,6 +8,9 @@
 #include "loader.h"
 #include "journallist.h"
 #include "journal.h"
+#include "class.h"
+#include "course.h"
+#include "user.h"
 
 class Journals : public QObject
 {
@@ -17,8 +20,11 @@ public:
     ~Journals();
 
     /* основные данные */
-    JournalList *journals; // список журналов
     Loader *loader; // загрузчик
+    JournalList *journals; // список журналов
+    QList<Class *> *classes; // список классов
+    QList<Course *> *courses; // список предметов
+    QList<User *> *teachers; // список учителей
 
     /* основные функции */
     bool tryLogin(const QString &login, const QString &password, QString *message);
@@ -26,11 +32,24 @@ public:
 
     /* функции работы с журналами */
     bool refreshJournals(QString *message);
+    bool createJournal(Journal *&journal, QString *message);
     bool getJournal(int id, Journal *&journal, QString *message, bool reload = true);
     bool saveJournal(Journal *&journal, QString *message);
 
     /* функции работы с данными */
+    bool refreshData(QString *message);
+
+    /* функции парсинга данных */
+    void parseClasses(QDomNode node);
+    void parseCourses(QDomNode node);
+    void parseTeachers(QDomNode node);
+
+    /* функции очистки данных */
     void clear();
+    void clearJournals();
+    void clearClasses();
+    void clearCourses();
+    void clearTeachers();
 
 private:
 
