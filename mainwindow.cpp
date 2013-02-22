@@ -359,10 +359,6 @@ void MainWindow::connectSignals()
     /* подключение к системе */
     QObject::connect(ui->buttonLoginExit, SIGNAL(clicked()),
             this, SLOT(on_buttonExit_clicked()));
-    QObject::connect(ui->buttonLoginCancel, SIGNAL(clicked()),
-            this, SLOT(on_buttonLoginCancel_clicked()));
-    QObject::connect(ui->editLogin, SIGNAL(returnPressed()),
-            this, SLOT(on_buttonLogin_clicked()));
     QObject::connect(ui->editPassword, SIGNAL(returnPressed()),
             this, SLOT(on_buttonLogin_clicked()));
 
@@ -714,6 +710,45 @@ void MainWindow::fillTree()
     }
 }
 
+// функция открывает журнал
+void MainWindow::openJournal(int id)
+{
+    // затемняем окно
+    glass->install(this, tr("Загрузка журнала ..."));
+
+    // загружаем журнал
+    QString message;
+    Journal *loaded = 0;
+    if (journals->getJournal(id, loaded, &message))
+    {
+        // работаем с копией загруженного журнала
+        if (currentJournal) delete currentJournal;
+        currentJournal = new Journal(loaded);
+
+        // помечаем, что журнал не изменялся
+        currentJournal->isChanged = false;
+
+        // выводим данные журнала
+        tableJournal->setJournal(currentJournal);
+
+        // переключение страницы
+        changeMainMode(mmJournal);
+    }
+
+    // убираем затемнение в случае, если оно не требуется для диалоговых окон
+    if (useDialogGlass) glass->hide();
+    else glass->remove();
+
+    if (message != "")
+    {
+        QMessageBox::critical(this, tr("Загрузка журнала"),
+            tr("Ошибка при загрузке журнала:\n%1").arg(message));
+    }
+
+    // убираем затемнение
+    glass->remove();
+}
+
 // проверка, сохранялся ли журнал в выводом сообщения и автоматическим сохранением
 bool MainWindow::checkSaveJournal(const QString &text, bool allowSave)
 {
@@ -1006,6 +1041,26 @@ void MainWindow::on_buttonExit_clicked()
     this->close();
 }
 
+// реакция двойной клик по элементу
+void MainWindow::on_treeJournals_itemDoubleClicked(QTreeWidgetItem *item, int)
+{
+   int id = item->data(0, Qt::UserRole).toInt();
+
+   // создаём новый журнал, если вместо идентификтора число 0
+   if (id == 0)
+   {
+       buttonCreate_clicked();
+   }
+   // иначе загружаем указанный
+   else
+   {
+       if (currentJournal && !checkSaveJournal(tr("Сохранить изменения в журнале «%1» перед открытием выбранного?").arg(currentJournal->getName())))
+           return;
+
+       openJournal(id);
+   }
+}
+
 // реакция на нажатие надписи-ссылки "Вернуться к журналу"
 void MainWindow::labelBack_clicked()
 {
@@ -1069,40 +1124,7 @@ void MainWindow::buttonOpen_clicked()
         if (currentJournal && !checkSaveJournal(tr("Сохранить изменения в журнале «%1» перед открытием выбранного?").arg(currentJournal->getName())))
             return;
 
-        // затемняем окно
-        glass->install(this, tr("Загрузка журнала ..."));
-
-        // загружаем журнал
-        QString message;
-        Journal *loaded = 0;
-        if (journals->getJournal(id, loaded, &message))
-        {
-            // работаем с копией загруженного журнала
-            if (currentJournal) delete currentJournal;
-            currentJournal = new Journal(loaded);
-
-            // помечаем, что журнал не изменялся
-            currentJournal->isChanged = false;
-
-            // выводим данные журнала
-            tableJournal->setJournal(currentJournal);
-
-            // переключение страницы
-            changeMainMode(mmJournal);
-        }
-
-        // убираем затемнение в случае, если оно не требуется для диалоговых окон
-        if (useDialogGlass) glass->hide();
-        else glass->remove();
-
-        if (message != "")
-        {
-            QMessageBox::critical(this, tr("Загрузка журнала"),
-                tr("Ошибка при загрузке журнала:\n%1").arg(message));
-        }
-
-        // убираем затемнение
-        glass->remove();
+        openJournal(id);
     }
 }
 

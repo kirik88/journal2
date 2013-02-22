@@ -9,6 +9,7 @@
 #include <QStyleFactory>
 #include <QMovie>
 #include <QCloseEvent>
+#include <QTreeWidgetItem>
 
 #include "glass.h"
 #include "journals.h"
@@ -85,6 +86,11 @@ private:
     void updateWidgets();
     void updateWindowTitle();
     void fillTree();
+
+    /* работа с журналами */
+    void openJournal(int id);
+
+    /* функции-проверки */
     bool checkSaveJournal(const QString &text, bool allowSave = true);
     bool checkAllowCreateJournal();
     bool checkAllowEditJournal(Journal *journal);
@@ -103,6 +109,7 @@ private slots:
     void on_buttonExit_clicked();
 
     /* кнопки дерева журналов */
+    void on_treeJournals_itemDoubleClicked(QTreeWidgetItem *item, int); // двойной клик по элементу
     void labelBack_clicked(); // надпись-кнопка "Вернуться к журналу"
     void labelRefresh_clicked(); // надпись-кнопка "Обновить"
     void buttonOpen_clicked(); // кнопка "Открыть журнал"

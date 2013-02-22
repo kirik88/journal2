@@ -138,7 +138,7 @@ bool Journals::getJournal(int id, Journal *&journal, QString *message, bool relo
             // запрос должен был вернуть один журнал, если не так - возвращаем ошибку
             if (tmp->count() != 1)
             {
-                *message = tr("Запрос вернул неверное количество журналов.");
+                *message = tr("Сервер вернул неверное количество журналов.");
 
                 delete tmp;
                 return false;
