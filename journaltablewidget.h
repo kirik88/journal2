@@ -1,7 +1,8 @@
-#ifndef JOURNALTABLE_H
-#define JOURNALTABLE_H
+#ifndef JOURNALTABLEWIDGET_H
+#define JOURNALTABLEWIDGET_H
 
 #include <QTableWidget>
+#include <QHeaderView>
 
 #include "journal.h"
 #include "journalitemdelegate.h"
@@ -27,11 +28,11 @@ private:
     void fillAll();
     
 signals:
-    /* сигналы при работе с журналов */
+    /* сигналы при работе с журналом */
     void journalChanged(); // журнал изменился
     
-public slots:
+public slots: 
     
 };
 
-#endif // JOURNALTABLE_H
+#endif // JOURNALTABLEWIDGET_H

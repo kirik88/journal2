@@ -13,6 +13,7 @@
 
 #include "glass.h"
 #include "journals.h"
+#include "journalstreewidget.h"
 #include "journaltablewidget.h"
 
 #include "journaldialog.h"
@@ -27,8 +28,7 @@ static QString appVersion = majorVersion + "." + minorVersion;
 // путь к файлу с общими настройками
 static QString commonIni;
 
-// имя по-умолчанию кнопок и элементов
-static QString buttonOpenName = "buttonOpen"; // кнопка "открыть" дерева журналов
+// имя по умолчанию кнопок и элементов
 static QString itemToolName = "itemTool"; // элемент списка инструментов
 
 // текст надписей
@@ -55,6 +55,7 @@ private:
     Journal *currentJournal; // текущий выбранный журнал
 
     /* основные виджеты */
+    JournalsTreeWidget *treeJournals; // дерево журналов
     JournalTableWidget *tableJournal; // таблица журнала
 
     /* дополнительные */
@@ -85,10 +86,6 @@ private:
     void changeMainMode(MainMode mode);
     void updateWidgets();
     void updateWindowTitle();
-    void fillTree();
-
-    /* работа с журналами */
-    void openJournal(int id);
 
     /* функции-проверки */
     bool checkSaveJournal(const QString &text, bool allowSave = true);
@@ -108,15 +105,16 @@ private slots:
     void on_buttonAbout_clicked();
     void on_buttonExit_clicked();
 
-    /* кнопки дерева журналов */
-    void on_treeJournals_itemDoubleClicked(QTreeWidgetItem *item, int); // двойной клик по элементу
-    void labelBack_clicked(); // надпись-кнопка "Вернуться к журналу"
-    void labelRefresh_clicked(); // надпись-кнопка "Обновить"
-    void buttonOpen_clicked(); // кнопка "Открыть журнал"
-    void buttonCreate_clicked(); // кнопка "Новый журнал"
+    /* дерево журналов */
+    void treeJournals_openJournal(int id);
+    void treeJournals_createJournal();
 
     /* таблица данных журнала */
-    void journal_changed();
+    void tableJournal_journalChanged();
+
+    /* вспомогательные кнопки */
+    void labelBack_clicked(); // надпись-кнопка "Вернуться к журналу"
+    void labelRefresh_clicked(); // надпись-кнопка "Обновить"
 
 protected:
     void closeEvent(QCloseEvent *event);

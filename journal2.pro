@@ -35,7 +35,8 @@ SOURCES += main.cpp\
     journalitemdelegate.cpp \
     journaldialog.cpp \
     class.cpp \
-    course.cpp
+    course.cpp \
+    journalstreewidget.cpp
 
 HEADERS  += mainwindow.h \
     journals.h \
@@ -52,7 +53,8 @@ HEADERS  += mainwindow.h \
     journalitemdelegate.h \
     journaldialog.h \
     class.h \
-    course.h
+    course.h \
+    journalstreewidget.h
 
 FORMS    += mainwindow.ui \
     journaldialog.ui

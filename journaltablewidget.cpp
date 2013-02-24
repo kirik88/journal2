@@ -3,11 +3,22 @@
 JournalTableWidget::JournalTableWidget(QWidget *parent) :
     QTableWidget(parent)
 {
+    // установка свойств виджета
+    this->setMouseTracking(true);
+    this->setContextMenuPolicy(Qt::CustomContextMenu);
+    this->setDragDropOverwriteMode(false);
+    this->setSelectionMode(QAbstractItemView::SingleSelection);
+    this->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+    this->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+    this->setGridStyle(Qt::DotLine);
+    this->horizontalHeader()->setMinimumSectionSize(25);
+    this->verticalHeader()->setMinimumSectionSize(25);
+
     // отметка "не был"
     markNone = tr("н");
 
     // назначаем свою отрисовку ячейки
-    setItemDelegate(new JournalItemDelegate());
+    this->setItemDelegate(new JournalItemDelegate());
 }
 
 // назначает журнал
