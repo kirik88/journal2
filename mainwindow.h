@@ -15,6 +15,7 @@
 #include "journals.h"
 #include "journalstreewidget.h"
 #include "journaltablewidget.h"
+#include "security.h"
 
 #include "journaldialog.h"
 
@@ -89,8 +90,6 @@ private:
 
     /* функции-проверки */
     bool checkSaveJournal(const QString &text, bool allowSave = true);
-    bool checkAllowCreateJournal();
-    bool checkAllowEditJournal(Journal *journal);
 
 private slots:
     /* кнопки режима подключения к системе */

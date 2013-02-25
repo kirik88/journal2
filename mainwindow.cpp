@@ -389,9 +389,11 @@ void MainWindow::connectSignals()
 // показ/скрытие кнопок
 void MainWindow::checkButtons()
 {
+    bool allowEditJournal = (journals && Security::allowEditJournal(journals->loader->user, currentJournal));
+
     // кнопки на панели инструментов
     buttonJournal->setVisible(currentJournal);
-    buttonSave->setVisible(checkAllowEditJournal(currentJournal));
+    buttonSave->setVisible(allowEditJournal);
     buttonTools->setVisible(false);//buttonSave->isVisible());
     buttonRefresh->setVisible(currentJournal);
     buttonProcessing->setVisible(false);//!user->readonly && !journal->readonly);
@@ -400,7 +402,7 @@ void MainWindow::checkButtons()
     if (currentJournal && currentJournal->isNew) ui->buttonJournal->setIcon(QIcon(":/icons/new"));
     else if (currentJournal && currentJournal->isDeleted) ui->buttonJournal->setIcon(QIcon(":/icons/delete"));
     else if (currentJournal && currentJournal->isArchived) ui->buttonJournal->setIcon(QIcon(":/icons/archive"));
-    else if (checkAllowEditJournal(currentJournal)) ui->buttonJournal->setIcon(QIcon(":/icons/journal_write"));
+    //else if (allowEditJournal) ui->buttonJournal->setIcon(QIcon(":/icons/journal_write"));
     else ui->buttonJournal->setIcon(QIcon(":/icons/journal"));
 
     // декоративная стрелка
@@ -639,34 +641,6 @@ bool MainWindow::checkSaveJournal(const QString &text, bool allowSave)
     return true;
 }
 
-// проверка на возможность создания нового журнала
-bool MainWindow::checkAllowCreateJournal()
-{
-    if (!journals || !journals->loader->user) return false;
-
-    User *user = journals->loader->user;
-
-    // создавать новые журналы разрешается только админу, заучу и учителю
-    return (user->userType == utAdmin || user->userType == utDirector || user->userType == utTeacher);
-}
-
-// проверка на возможность редактирования журнала
-bool MainWindow::checkAllowEditJournal(Journal *journal)
-{
-    if (!journal || !journals || !journals->loader->user) return false;
-
-    User *user = journals->loader->user;
-
-    // админу можно всё
-    if (user->userType == utAdmin) return true;
-
-    // завуч и учитель может редактировать только неархивированный неудалённый журнал
-    if (user->userType == utDirector || user->userType == utTeacher) return (!journal->isDeleted && !journal->isArchived);
-
-    // остальным редактирование запрещено
-    return false;
-}
-
 // реакция на нажатие кнопки "Войти в систему"
 void MainWindow::on_buttonLogin_clicked()
 {
@@ -715,7 +689,6 @@ void MainWindow::on_buttonLogin_clicked()
         )
     {
         // строим дерево журналов
-        treeJournals->setEnableNewButton(checkAllowCreateJournal());
         treeJournals->setJournals(journals);
 
         // меняем страницуr

@@ -100,7 +100,7 @@ bool Journals::createJournal(Journal *&journal, QString *message)
 // загрузить журнал по его идентификатору (id) с необходимостью перезагрузки его данных (reload)
 bool Journals::getJournal(int id, Journal *&journal, QString *message, bool reload)
 {
-    *message = "";
+    if (message) *message = "";
     Journal *result = 0;
 
     // защита от дурака
@@ -128,7 +128,7 @@ bool Journals::getJournal(int id, Journal *&journal, QString *message, bool relo
             // при ошибке возвращаем сообщение
             if (answer->getCode() != OK)
             {
-                *message = answer->getResult();
+                if (message) *message = answer->getResult();
                 return false;
             };
 
@@ -138,7 +138,7 @@ bool Journals::getJournal(int id, Journal *&journal, QString *message, bool relo
             // запрос должен был вернуть один журнал, если не так - возвращаем ошибку
             if (tmp->count() != 1)
             {
-                *message = tr("Сервер вернул неверное количество журналов.");
+                if (message) *message = tr("Сервер вернул неверное количество журналов.");
 
                 delete tmp;
                 return false;

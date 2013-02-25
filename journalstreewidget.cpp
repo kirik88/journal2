@@ -3,9 +3,6 @@
 JournalsTreeWidget::JournalsTreeWidget(QWidget *parent) :
     QTreeWidget(parent)
 {
-    // данные по умолчанию
-    enableNewButton = false;
-
     // установка свойств виджета
     this->setMouseTracking(true);
     this->setIconSize(QSize(32, 32));
@@ -26,6 +23,31 @@ JournalsTreeWidget::JournalsTreeWidget(QWidget *parent) :
     // связываем сигналы
     QObject::connect(this, SIGNAL(itemDoubleClicked(QTreeWidgetItem *, int)),
             this, SLOT(treeJournals_itemDoubleClicked(QTreeWidgetItem *, int)));
+
+    // контекстное меню
+    context = new QMenu();
+
+    actionCreate = new QAction(tr("Создать журнал..."), this);
+    QObject::connect(actionCreate, SIGNAL(triggered()), SLOT(buttonCreate_clicked()));
+    context->addAction(actionCreate);
+    context->addSeparator();
+
+    actionOpen = new QAction(tr("Открыть"), this);
+    QObject::connect(actionOpen, SIGNAL(triggered()), SLOT(contextActionTriggered()));
+    context->addAction(actionOpen);
+
+    actionEdit = new QAction(tr("Редактировать..."), this);
+    QObject::connect(actionEdit, SIGNAL(triggered()), SLOT(contextActionTriggered()));
+    context->addAction(actionEdit);
+
+    actionDelete = new QAction(tr("Удалить"), this);
+    QObject::connect(actionDelete, SIGNAL(triggered()), SLOT(contextActionTriggered()));
+    context->addAction(actionDelete);
+}
+
+JournalsTreeWidget::~JournalsTreeWidget()
+{
+    delete context;
 }
 
 // назначает журнал
@@ -35,12 +57,6 @@ void JournalsTreeWidget::setJournals(Journals *journals)
 
     clearAll();
     fillAll();
-}
-
-// управление доступностью операции создания нового журнала
-void JournalsTreeWidget::setEnableNewButton(bool enable)
-{
-    this->enableNewButton = enable;
 }
 
 // очищает таблицу
@@ -54,7 +70,7 @@ void JournalsTreeWidget::clearAll()
 void JournalsTreeWidget::fillAll()
 {
     // защита от дурака
-    if (!journals || !journals->journals) return;
+    if (!journals || !journals->journals || !journals->loader->user) return;
 
     for (int i = 0; journals->journals->count() > i; i++)
     {
@@ -123,7 +139,7 @@ void JournalsTreeWidget::fillAll()
     }
 
     // добавление строки "Новый журнал"
-    if (enableNewButton)
+    if (Security::allowCreateJournal(journals->loader->user))
     {
         // иконка
         QIcon icon(":/icons/new");
@@ -177,6 +193,51 @@ void JournalsTreeWidget::fillAll()
     }
 }
 
+// реакция на вызов контекстного меню
+void JournalsTreeWidget::contextMenuEvent(QContextMenuEvent *event)
+{
+    // защита от дурака
+    if (!journals || !journals->loader->user) return;
+
+    if (this->selectedItems().count() > 0)
+    {
+        User *user = journals->loader->user;
+        bool allowCreateJournal = Security::allowCreateJournal(user);
+
+        // узнаём выделенный элемент дерева
+        QTreeWidgetItem *item = this->selectedItems().at(0);
+        int id = item->data(0, Qt::UserRole).toInt();
+
+        // выставляем видимость пунктов
+        actionCreate->setVisible(allowCreateJournal);
+
+        // для строки "Новый журнал" оставляем только пункт создания журнала
+        if (id == 0)
+        {
+            actionOpen->setVisible(false);
+            actionEdit->setVisible(false);
+            actionDelete->setVisible(false);
+
+            // если создание запрещено - вообще не показываем контекстное меню
+            if (!allowCreateJournal) return;
+        }
+        else
+        {
+            // получаем журнал, чтоб проверить возможность его редактирования
+            Journal *journal;
+            journals->getJournal(id, journal, 0, false);
+            if (!journal) return;
+
+            actionOpen->setVisible(true);
+            actionEdit->setVisible(Security::allowEditJournal(user, journal));
+            actionDelete->setVisible(actionEdit->isVisible());
+        }
+
+        // вызываем контекстное меню
+        context->exec(event->globalPos());
+    }
+}
+
 // реакция на двойной клик по элементу
 void JournalsTreeWidget::treeJournals_itemDoubleClicked(QTreeWidgetItem *item, int)
 {
@@ -214,4 +275,41 @@ void JournalsTreeWidget::buttonCreate_clicked()
 {
     // создаём новый журнал
     emit createJournal();
+}
+
+// реакция на выбор элемента контекстного меню
+void JournalsTreeWidget::contextActionTriggered()
+{
+    if (this->selectedItems().count() == 0) return;
+
+    // узнаём выбранный элемент контекстного меню
+    QAction *action = qobject_cast<QAction *>(sender());
+
+    // хотим создать новый журнал
+    if (action == actionCreate)
+    {
+        emit createJournal();
+    }
+    else
+    {
+        // узнаём выделенный элемент дерева
+        QTreeWidgetItem *item = this->selectedItems().at(0);
+        int id = item->data(0, Qt::UserRole).toInt();
+
+        // хотим открыть журнал
+        if (action == actionOpen)
+        {
+            emit openJournal(id);
+        }
+        // хотим изменить журнал
+        else if (action == actionEdit)
+        {
+            emit editJournal(id);
+        }
+        // хотим удалить журнал
+        else if (action == actionDelete)
+        {
+            emit deleteJournal(id);
+        }
+    }
 }
