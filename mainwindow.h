@@ -105,8 +105,10 @@ private slots:
     void on_buttonExit_clicked();
 
     /* дерево журналов */
-    void treeJournals_openJournal(int id);
     void treeJournals_createJournal();
+    void treeJournals_openJournal(int id);
+    void treeJournals_editJournal(int id);
+    void treeJournals_deleteJournal(int id);
 
     /* таблица данных журнала */
     void tableJournal_journalChanged();

@@ -97,6 +97,93 @@ bool Journals::createJournal(Journal *&journal, QString *message)
     return saveJournal(journal, message);
 }
 
+// сохранить журнал
+bool Journals::saveJournal(Journal *&journal, QString *message)
+{
+    *message = "";
+
+    // защита от дурака
+    if (!journals) return false;
+
+    // сохраняем во временный файл
+    QTemporaryFile *journalFile = new QTemporaryFile();
+    journalFile->open();
+
+    if (!journal->save(journalFile))
+    {
+        if (journalFile)
+        {
+            journalFile->close();
+            delete journalFile;
+            journalFile = 0;
+        }
+
+        *message = tr("Произошла ошибка при сохранении журнала во временный файл.");
+
+        return false;
+    }
+    journalFile->flush();
+    journalFile->close();
+
+    // сохраняем журнал через загрузчик
+    if (loader->saveJournal(journalFile))
+    {
+        Answer *answer = loader->lastAnswer;
+
+        // при ошибке возвращаем сообщение
+        if (answer->getCode() != OK)
+        {
+            *message = answer->getResult();
+
+            delete journalFile;
+            return false;
+        };
+
+        // обновляем данные журнала
+        journal->setId(answer->getValue("id").toInt());
+        journal->changed = QDateTime::fromString(answer->getValue("changed"), dateTimeParseString);
+
+        // обновляем в списке либо добавляем сохранённый журнал
+        journals->appendRefresh(journal);
+    }
+    else // отменили
+    {
+        delete journalFile;
+        return false;
+    }
+
+    delete journalFile;
+    return true;
+}
+
+// удалить журнал по идентификатору (id)
+bool Journals::deleteJournal(int id, QString *message)
+{
+    // получаем журнал
+    Journal *journal;
+    if (!getJournal(id, journal, message, false)) return false;
+
+    // помечаем журнал удалённым
+    // загружаем журнал через загрузчик
+    if (loader->deleteJournal(id))
+    {
+        Answer *answer = loader->lastAnswer;
+
+        // при ошибке возвращаем сообщение
+        if (answer->getCode() != OK)
+        {
+            if (message) *message = answer->getResult();
+            return false;
+        };
+
+        return true;
+    }
+    else // отменили
+    {
+        return false;
+    }
+}
+
 // загрузить журнал по его идентификатору (id) с необходимостью перезагрузки его данных (reload)
 bool Journals::getJournal(int id, Journal *&journal, QString *message, bool reload)
 {
@@ -169,65 +256,6 @@ bool Journals::getJournal(int id, Journal *&journal, QString *message, bool relo
     journal = result;
 
     return result;
-}
-
-// сохранить журнал
-bool Journals::saveJournal(Journal *&journal, QString *message)
-{
-    *message = "";
-
-    // защита от дурака
-    if (!journals) return false;
-
-    // сохраняем во временный файл
-    QTemporaryFile *journalFile = new QTemporaryFile();
-    journalFile->open();
-
-    if (!journal->save(journalFile))
-    {
-        if (journalFile)
-        {
-            journalFile->close();
-            delete journalFile;
-            journalFile = 0;
-        }
-
-        *message = tr("Произошла ошибка при сохранении журнала во временный файл.");
-
-        return false;
-    }
-    journalFile->flush();
-    journalFile->close();
-
-    // сохраняем журнал через загрузчик
-    if (loader->saveJournal(journalFile))
-    {
-        Answer *answer = loader->lastAnswer;
-
-        // при ошибке возвращаем сообщение
-        if (answer->getCode() != OK)
-        {
-            *message = answer->getResult();
-
-            delete journalFile;
-            return false;
-        };
-
-        // обновляем данные журнала
-        journal->setId(answer->getValue("id").toInt());
-        journal->changed = QDateTime::fromString(answer->getValue("changed"), dateTimeParseString);
-
-        // обновляем в списке либо добавляем сохранённый журнал
-        journals->appendRefresh(journal);
-    }
-    else // отменили
-    {
-        delete journalFile;
-        return false;
-    }
-
-    delete journalFile;
-    return true;
 }
 
 // обновить/загрузить список классов, предметов и учителей

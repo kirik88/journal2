@@ -252,6 +252,41 @@ bool Loader::saveJournal(QFile *file, bool loop)
     return true;
 }
 
+// удалить журнал по его идентификатору (id)
+// вернёт false, если операцию отменили
+bool Loader::deleteJournal(int id, bool loop)
+{
+    if (operation != loIddle)
+    {
+        return false; //TODO:вызывать исключение
+    }
+    operation = loDeleteJournal;
+    httpAborted = false;
+
+    // формируем строку запроса
+    QUrl url = QString("http://%1/delete/%2/xml").arg(site).arg(id);
+
+    // запускаем
+    reply = network->get(QNetworkRequest(url));
+
+    // если нужно, "замираем" до конца выполнения запроса
+    if (loop)
+    {
+        httpLoop = new QEventLoop();
+
+        int res = httpLoop->exec();
+
+        delete httpLoop;
+        httpLoop = 0;
+
+        operation = loIddle;
+
+        return (res == 0);
+    }
+
+    return true;
+}
+
 // ответ сервера при логине
 void Loader::httpFinished()
 {
@@ -344,6 +379,10 @@ void Loader::httpFinished()
 
         case loSaveJournal:
             emit saveJournalFinished(lastAnswer);
+            break;
+
+        case loDeleteJournal:
+            emit deleteJournalFinished(lastAnswer);
             break;
 
         case loData:

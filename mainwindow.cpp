@@ -353,14 +353,20 @@ void MainWindow::connectSignals()
     /* подключение к системе */
     QObject::connect(ui->buttonLoginExit, SIGNAL(clicked()),
             this, SLOT(on_buttonExit_clicked()));
+    QObject::connect(ui->editLogin, SIGNAL(returnPressed()),
+            this, SLOT(on_buttonLogin_clicked()));
     QObject::connect(ui->editPassword, SIGNAL(returnPressed()),
             this, SLOT(on_buttonLogin_clicked()));
 
     /* дерево журналов */
-    QObject::connect(treeJournals, SIGNAL(openJournal(int)),
-            this, SLOT(treeJournals_openJournal(int)));
     QObject::connect(treeJournals, SIGNAL(createJournal()),
             this, SLOT(treeJournals_createJournal()));
+    QObject::connect(treeJournals, SIGNAL(openJournal(int)),
+            this, SLOT(treeJournals_openJournal(int)));
+    QObject::connect(treeJournals, SIGNAL(editJournal(int)),
+            this, SLOT(treeJournals_editJournal(int)));
+    QObject::connect(treeJournals, SIGNAL(deleteJournal(int)),
+            this, SLOT(treeJournals_deleteJournal(int)));
 
     /* таблица */
     QObject::connect(tableJournal, SIGNAL(journalChanged()),
@@ -849,48 +855,6 @@ void MainWindow::on_buttonExit_clicked()
     this->close();
 }
 
-// событие при открытии журнала
-void MainWindow::treeJournals_openJournal(int id)
-{
-    if (currentJournal && !checkSaveJournal(tr("Сохранить изменения в журнале «%1» перед открытием выбранного?").arg(currentJournal->getName())))
-        return;
-
-    // затемняем окно
-    glass->install(this, tr("Загрузка журнала ..."));
-
-    // загружаем журнал
-    QString message;
-    Journal *loaded = 0;
-    if (journals->getJournal(id, loaded, &message))
-    {
-        // работаем с копией загруженного журнала
-        if (currentJournal) delete currentJournal;
-        currentJournal = new Journal(loaded);
-
-        // помечаем, что журнал не изменялся
-        currentJournal->isChanged = false;
-
-        // выводим данные журнала
-        tableJournal->setJournal(currentJournal);
-
-        // переключение страницы
-        changeMainMode(mmJournal);
-    }
-
-    // убираем затемнение в случае, если оно не требуется для диалоговых окон
-    if (useDialogGlass) glass->hide();
-    else glass->remove();
-
-    if (message != "")
-    {
-        QMessageBox::critical(this, tr("Загрузка журнала"),
-            tr("Ошибка при загрузке журнала:\n%1").arg(message));
-    }
-
-    // убираем затемнение
-    glass->remove();
-}
-
 // событие при создании нового журнала
 void MainWindow::treeJournals_createJournal()
 {
@@ -957,6 +921,121 @@ void MainWindow::treeJournals_createJournal()
 
         // убираем затемнение
         if (!useDialogGlass) glass->remove();
+    }
+
+    // убираем затемнение
+    glass->remove();
+}
+
+// событие при открытии журнала
+void MainWindow::treeJournals_openJournal(int id)
+{
+    if (currentJournal && !checkSaveJournal(tr("Сохранить изменения в журнале «%1» перед открытием выбранного?").arg(currentJournal->getName())))
+        return;
+
+    // затемняем окно
+    glass->install(this, tr("Загрузка журнала ..."));
+
+    // загружаем журнал
+    QString message;
+    Journal *loaded = 0;
+    if (journals->getJournal(id, loaded, &message))
+    {
+        // работаем с копией загруженного журнала
+        if (currentJournal) delete currentJournal;
+        currentJournal = new Journal(loaded);
+
+        // помечаем, что журнал не изменялся
+        currentJournal->isChanged = false;
+
+        // выводим данные журнала
+        tableJournal->setJournal(currentJournal);
+
+        // переключение страницы
+        changeMainMode(mmJournal);
+    }
+
+    // убираем затемнение в случае, если оно не требуется для диалоговых окон
+    if (useDialogGlass) glass->hide();
+    else glass->remove();
+
+    if (message != "")
+    {
+        QMessageBox::critical(this, tr("Загрузка журнала"),
+            tr("Ошибка при загрузке журнала:\n%1").arg(message));
+    }
+
+    // убираем затемнение
+    glass->remove();
+}
+
+// событие при редактировании журнала
+void MainWindow::treeJournals_editJournal(int id)
+{
+
+}
+
+// событие при удалении журнала
+void MainWindow::treeJournals_deleteJournal(int id)
+{
+    // получаем журнал, который требуется удалить
+    Journal *journal;
+    if (!journals->getJournal(id, journal, 0, false)) return;
+
+    // подтверждение
+    QMessageBox *question = new QMessageBox(QMessageBox::Question, tr("Удаление журнала"),
+                                            tr("Вы действительно хотите удалить журнал «%1»%2?").arg(journal->getName()).arg(journal->isDeleted ? " без возможности восстановления" : ""));
+
+    // кнопка "Отмена"
+    QPushButton *btn = new QPushButton(QApplication::style()->standardIcon(QStyle::SP_DialogCancelButton), tr("Отмена"));
+    question->addButton(btn, QMessageBox::RejectRole);
+
+    // кнопка "Удалить"
+    btn = new QPushButton(QApplication::style()->standardIcon(QStyle::SP_DialogDiscardButton), tr("Удалить%1").arg(journal->isDeleted ? " навсегда" : ""));
+    question->addButton(btn, QMessageBox::AcceptRole);
+
+    if (journal && !checkSaveJournal(tr("Вы действительно хотите удалить журнал «%1»?").arg(journal->getName())))
+        return;
+
+    // установка затемнения
+    if (useDialogGlass) glass->install(this);
+
+    // подтвердили
+    if (question->exec() == QMessageBox::Accepted)
+    {
+        // затемняем окно
+        glass->install(this, tr("Удаление журнала ..."));
+
+        // удаляем журнал
+        QString message;
+        bool deleted = (journal->isDeleted ? journals->deleteJournal(id, &message) : journals->deleteJournal(id, &message));
+
+        // обновляем дерево журналов
+        if (deleted && journals->refreshJournals(&message))
+        {
+            // перестраиваем дерево журналов
+            treeJournals->setJournals(journals);
+
+            // если удаляли текущий активный журнал - закрываем его
+            if (currentJournal && (currentJournal->getId() == id))
+            {
+                currentJournal = 0;
+                tableJournal->setJournal(0);
+
+                // переходим на страницу с журналами
+                changeMainMode(mmJournals);
+            }
+        }
+
+        // убираем затемнение в случае, если оно не требуется для диалоговых окон
+        if (useDialogGlass) glass->hide();
+        else glass->remove();
+
+        if (message != "")
+        {
+            QMessageBox::critical(this, tr("Удаление журнала"),
+                tr("Ошибка при удалении журнала:\n%1").arg(message));
+        }
     }
 
     // убираем затемнение
