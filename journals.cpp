@@ -156,7 +156,7 @@ bool Journals::saveJournal(Journal *&journal, QString *message)
     return true;
 }
 
-// удалить журнал по идентификатору (id)
+// удалить журнал в корзину по идентификатору (id)
 bool Journals::deleteJournal(int id, QString *message)
 {
     // получаем журнал
@@ -164,8 +164,36 @@ bool Journals::deleteJournal(int id, QString *message)
     if (!getJournal(id, journal, message, false)) return false;
 
     // помечаем журнал удалённым
-    // загружаем журнал через загрузчик
+    // удаляем журнал через загрузчик
     if (loader->deleteJournal(id))
+    {
+        Answer *answer = loader->lastAnswer;
+
+        // при ошибке возвращаем сообщение
+        if (answer->getCode() != OK)
+        {
+            if (message) *message = answer->getResult();
+            return false;
+        };
+
+        return true;
+    }
+    else // отменили
+    {
+        return false;
+    }
+}
+
+// полностью удалить журнал по идентификатору (id)
+bool Journals::eraseJournal(int id, QString *message)
+{
+    // получаем журнал
+    Journal *journal;
+    if (!getJournal(id, journal, message, false)) return false;
+
+    // помечаем журнал удалённым
+    // стираем журнал через загрузчик
+    if (loader->eraseJournal(id))
     {
         Answer *answer = loader->lastAnswer;
 

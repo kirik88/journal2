@@ -10,6 +10,7 @@ enum LoaderOperation
     loJournal,       // пробует загрузить журнал
     loSaveJournal,   // пробует сохранить журнал
     loDeleteJournal, // пробует удалить журнал
+    loEraseJournal,  // пробует стереть журнал
     loData           // пробует загрузкить данные классов, предметов и учителей
 };
 

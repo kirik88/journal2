@@ -39,6 +39,7 @@ public:
     bool loadJournal(int id, bool loop = true);
     bool saveJournal(QFile *file, bool loop = true);
     bool deleteJournal(int id, bool loop = true);
+    bool eraseJournal(int id, bool loop = true);
 
     /* функции для работы с данными */
     bool loadData(bool loop = true);
@@ -63,6 +64,7 @@ signals:
     void journalFinished(Answer *answer); // после загрузки журнала
     void saveJournalFinished(Answer *answer); // после сохранения журнала
     void deleteJournalFinished(Answer *answer); // после удаления журнала
+    void eraseJournalFinished(Answer *answer); // после стирания журнала
     void dataFinished(Answer *answer); // после загрузки данных
 
 private slots:

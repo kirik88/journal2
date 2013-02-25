@@ -1008,7 +1008,7 @@ void MainWindow::treeJournals_deleteJournal(int id)
 
         // удаляем журнал
         QString message;
-        bool deleted = (journal->isDeleted ? journals->deleteJournal(id, &message) : journals->deleteJournal(id, &message));
+        bool deleted = (journal->isDeleted ? journals->eraseJournal(id, &message) : journals->deleteJournal(id, &message));
 
         // обновляем дерево журналов
         if (deleted && journals->refreshJournals(&message))

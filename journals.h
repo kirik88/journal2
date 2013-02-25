@@ -35,6 +35,7 @@ public:
     bool createJournal(Journal *&journal, QString *message);  
     bool saveJournal(Journal *&journal, QString *message);
     bool deleteJournal(int id, QString *message);
+    bool eraseJournal(int id, QString *message);
     bool getJournal(int id, Journal *&journal, QString *message, bool reload = true);
 
     /* функции работы с данными */
