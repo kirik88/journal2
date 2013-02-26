@@ -972,7 +972,81 @@ void MainWindow::treeJournals_openJournal(int id)
 // событие при редактировании журнала
 void MainWindow::treeJournals_editJournal(int id)
 {
+    // получаем журнал, который требуется редактировать
+    Journal *journal;
+    if (!journals->getJournal(id, journal, 0, false)) return;
 
+    // диалоговое окно журнала
+    JournalDialog *dialog = new JournalDialog(journals);
+    dialog->setWindowFlags(Qt::Dialog | Qt::WindowCloseButtonHint);
+
+    // проверяем на нажатие
+    bool ok = false;
+    while (!ok)
+    {
+        // затемняем окно
+        if (useDialogGlass) glass->install(this);
+
+        // переводим диалоговое окно в режим редактирования
+        dialog->editJournal(journal);
+
+        // отображаем окно
+        if (dialog->exec() == QDialog::Accepted)
+        {
+            // затемняем окно
+            glass->install(this, tr("Сохранение журнала ..."));
+
+            // создаём журнал на основе имеющегося с заменой данных из диалогового окна
+            Journal *edited = new Journal(journal);
+            edited->name = dialog->name;
+            edited->classId = dialog->classId;
+            edited->courseId = dialog->courseId;
+            edited->teacherId = dialog->teacherId;
+            edited->description = dialog->description;
+
+            // сохраняем журнал
+            QString message;
+            if (journals->saveJournal(edited, &message, false))
+            {
+                glass->install(this, tr("Обновление дерева журналов ..."));
+
+                QString message;
+                if (journals->refreshJournals(&message))
+                {
+                    // перестраиваем дерево журналов
+                    treeJournals->setJournals(journals);
+
+                    // редактирование прошло успешно
+                    ok = true;
+                }
+
+                ok = true;
+            }
+
+            // убираем затемнение в случае, если оно не требуется для диалоговых окон
+            if (useDialogGlass) glass->hide();
+            else glass->remove();
+
+            if (!ok && message != "")
+            {
+                QMessageBox::critical(this, tr("Сохранение журнала"),
+                    tr("Ошибка при сохранении журнала:\n%1").arg(message));
+            }
+
+            delete edited;
+        }
+        else
+        {
+            // отменили
+            ok = true;
+        }
+
+        // убираем затемнение
+        if (!useDialogGlass) glass->remove();
+    }
+
+    // убираем затемнение
+    glass->remove();
 }
 
 // событие при удалении журнала

@@ -98,7 +98,7 @@ bool Journals::createJournal(Journal *&journal, QString *message)
 }
 
 // сохранить журнал
-bool Journals::saveJournal(Journal *&journal, QString *message)
+bool Journals::saveJournal(Journal *&journal, QString *message, bool fullSave)
 {
     *message = "";
 
@@ -126,7 +126,7 @@ bool Journals::saveJournal(Journal *&journal, QString *message)
     journalFile->close();
 
     // сохраняем журнал через загрузчик
-    if (loader->saveJournal(journalFile))
+    if (loader->saveJournal(journalFile, fullSave))
     {
         Answer *answer = loader->lastAnswer;
 

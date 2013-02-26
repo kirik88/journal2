@@ -9,6 +9,8 @@ JournalDialog::JournalDialog(Journals *journals, QWidget *parent) :
 
     if (!journals || !journals->loader->user) return;
 
+    User *user = journals->loader->user;
+
     // скрываем виджеты ввода наименования
     ui->labelName->hide();
     ui->lineEditName->hide();
@@ -20,7 +22,10 @@ JournalDialog::JournalDialog(Journals *journals, QWidget *parent) :
     {
         Class *cl = journals->classes->at(i);
 
-        ui->comboBoxClass->addItem(cl->getName(), cl->getId());
+        // для админа доступны все классы, поэтому к наименованиям приписываем учебный год
+        QString classTitle = (user->userType == utAdmin) ? QString("%1 (%2-%3)").arg(cl->getName()).arg(cl->startYear).arg(cl->startYear + 1) : cl->getName();
+
+        ui->comboBoxClass->addItem(classTitle, cl->getId());
     }
 
     // заполняем список предментов
@@ -35,9 +40,9 @@ JournalDialog::JournalDialog(Journals *journals, QWidget *parent) :
 
     // учитель не может выставить другого учителя
     ui->comboBoxTeacher->clear();
-    if (journals->loader->user->userType == utTeacher)
+    if (user->userType == utTeacher)
     {
-        ui->comboBoxTeacher->addItem(journals->loader->user->name, journals->loader->user->getId());
+        ui->comboBoxTeacher->addItem(user->getName(), user->getId());
         ui->comboBoxTeacher->setEnabled(false);
     }
     else
@@ -56,6 +61,46 @@ JournalDialog::JournalDialog(Journals *journals, QWidget *parent) :
 JournalDialog::~JournalDialog()
 {
     delete ui;
+}
+
+// функция вводит окно в режим редактирования журнала
+void JournalDialog::editJournal(Journal *journal)
+{
+    // заголовок
+    this->setWindowTitle(tr("Редактирование журнала \"%1\"").arg(journal->getName().replace("\n", " ")));
+
+    // наименование
+    if (journal->name != "")
+    {
+        ui->labelNameAuto->hide();
+        ui->labelName->show();
+        ui->lineEditName->show();
+        ui->lineEditName->setText(journal->name);
+    }
+
+    // класс
+    if (journal->classId > 0)
+    {
+        int i = ui->comboBoxClass->findData(journal->classId);
+        if (i >= 0) ui->comboBoxClass->setCurrentIndex(i);
+    }
+
+    // предмет
+    if (journal->courseId > 0)
+    {
+        int i = ui->comboBoxCourse->findData(journal->courseId);
+        if (i >= 0) ui->comboBoxCourse->setCurrentIndex(i);
+    }
+
+    // учитель
+    if (journal->teacherId > 0)
+    {
+        int i = ui->comboBoxTeacher->findData(journal->teacherId);
+        if (i >= 0) ui->comboBoxTeacher->setCurrentIndex(i);
+    }
+
+    // описание
+    ui->plainTextEditDescription->setPlainText(journal->description);
 }
 
 // реакция на нажатие кнопки "ввести наименование вручную"

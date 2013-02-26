@@ -192,7 +192,7 @@ bool Loader::loadJournal(int id, bool loop)
 
 // сохранить журнал из файла (file)
 // вернёт false, если операцию отменили
-bool Loader::saveJournal(QFile *file, bool loop)
+bool Loader::saveJournal(QFile *file, bool fullSave, bool loop)
 {
     if (operation != loIddle)
     {
@@ -208,7 +208,7 @@ bool Loader::saveJournal(QFile *file, bool loop)
 
     // формируем строку запроса
     //QUrl url = tr("http://mindspace.ru/files/qrcode/qr_card.jpg");
-    QUrl url = tr("http://%1/save/xml").arg(site);
+    QUrl url = tr("http://%1/save%2/xml").arg(site).arg(fullSave ? "" : "/nofull");
 
     // формируем запрос с массивом
     QNetworkRequest request(url);

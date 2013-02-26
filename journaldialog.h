@@ -19,12 +19,15 @@ public:
     explicit JournalDialog(Journals *journals, QWidget *parent = 0);
     ~JournalDialog();
 
-    /* выхоные данные */
+    /* выходные данные */
     QString name;
     int classId;
     int courseId;
     int teacherId;
     QString description;
+
+    /* функции */
+    void editJournal(Journal *journal);
 
 private:
     Ui::JournalDialog *ui;

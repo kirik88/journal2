@@ -37,7 +37,7 @@ public:
     /* функции для работы с журналами */
     bool loadJournals(bool full = false, bool loop = true);
     bool loadJournal(int id, bool loop = true);
-    bool saveJournal(QFile *file, bool loop = true);
+    bool saveJournal(QFile *file, bool fullSave, bool loop = true);
     bool deleteJournal(int id, bool loop = true);
     bool eraseJournal(int id, bool loop = true);
 
