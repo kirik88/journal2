@@ -25,7 +25,6 @@ JournalTableWidget::JournalTableWidget(QWidget *parent) :
                 this, SLOT(showContextMenu(const QPoint &)));
 
     // контекстное меню
-    //setContextMenuPolicy(Qt::ActionsContextMenu);
     context = new QMenu();
 
     action5 = new QAction(tr("Отметка «5»"), this);
@@ -226,6 +225,21 @@ void JournalTableWidget::showContextMenu(const QPoint &)
     if (!row_item) return;
     curRow = row_item->data(Qt::UserRole).toInt();
 
+    // скрываем элементы редактирования, если журнал открыт в режиме чтения
+    action5->setVisible(!isReadOnly);
+    action4->setVisible(action5->isVisible());
+    action3->setVisible(action5->isVisible());
+    action2->setVisible(action5->isVisible());
+    action1->setVisible(action5->isVisible());
+    actionClear->setVisible(action5->isVisible());
+
+    // скрываем пункт "очистить", если в данной ячейке нет никакого значения
+    if (actionClear->isVisible())
+    {
+        Value *value = journal->getValue(curCol, curRow);
+        actionClear->setVisible(value);
+    }
+
     // вызываем контекстное меню
     context->exec(QCursor::pos());
 }
@@ -263,9 +277,7 @@ void JournalTableWidget::contextActionTriggered()
         // отображаем окно
         if (dialog->exec() == QDialog::Accepted)
         {
-            value->description = dialog->comments;
-
-            setItemData(this->currentItem(), value);
+            setItemData(this->currentItem(), journal->setValueDescription(curCol, curRow, dialog->comments));
 
             emit journalChanged();
         }

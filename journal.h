@@ -48,6 +48,7 @@ public:
     Row *getRow(int id);
     Value *getValue(int colId, int rowId);
     Value *setValue(int colId, int rowId, QString value);
+    Value *setValueDescription(int colId, int rowId, QString description);
     void clearValue(int colId, int rowId);
 
     /* функции для работы с внутренними данными */

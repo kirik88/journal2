@@ -258,6 +258,24 @@ Value *Journal::setValue(int colId, int rowId, QString value)
     return val;
 }
 
+// назначить комментарии и вернуть значение по идентификаторам колонки и строки
+Value *Journal::setValueDescription(int colId, int rowId, QString description)
+{
+    Value *val = getValue(colId, rowId);
+
+    if (!val)
+    {
+        val = new Value(getNextValueId(), "");
+        values.append(val);
+    }
+
+    val->columnId = colId;
+    val->rowId = rowId;
+    val->description = description;
+
+    return val;
+}
+
 // удалить значение
 void Journal::clearValue(int colId, int rowId)
 {
