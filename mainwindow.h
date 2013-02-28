@@ -23,7 +23,7 @@
 
 // версия приложения
 static QString majorVersion = "0";
-static QString minorVersion = "2";
+static QString minorVersion = "4";
 static QString appVersion = majorVersion + "." + minorVersion;
 
 // путь к файлу с общими настройками

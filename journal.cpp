@@ -134,6 +134,10 @@ void Journal::copyFrom(Journal *from)
     this->isChanged = from->isChanged;
     this->isNew = from->isNew;
 
+    this->nextColumnId = from->nextColumnId;
+    this->nextRowId = from->nextRowId;
+    this->nextValueId = from->nextValueId;
+
     // копирование колонок
     for (int i = 0; from->columns.count() > i; i++)
     {
@@ -170,6 +174,10 @@ void Journal::clear()
     isDeleted = false;
     isChanged = false;
     isNew = false;
+
+    nextColumnId = 0;
+    nextRowId = 0;
+    nextValueId = 0;
 
     // очистка списка колонок
     while (columns.count() > 0)
@@ -219,7 +227,7 @@ Row *Journal::getRow(int id)
     return 0;
 }
 
-// вернуть значение по идентификатором колонки и строки
+// вернуть значение по идентификаторам колонки и строки
 Value *Journal::getValue(int colId, int rowId)
 {
     for (int val = 0; values.count() > val; val++)
@@ -230,6 +238,36 @@ Value *Journal::getValue(int colId, int rowId)
     }
 
     return 0;
+}
+
+// назначить и вернуть значение по идентификаторам колонки и строки
+Value *Journal::setValue(int colId, int rowId, QString value)
+{
+    Value *val = getValue(colId, rowId);
+
+    if (!val)
+    {
+        val = new Value(getNextValueId(), "");
+        values.append(val);
+    }
+
+    val->columnId = colId;
+    val->rowId = rowId;
+    val->value = value;
+
+    return val;
+}
+
+// удалить значение
+void Journal::clearValue(int colId, int rowId)
+{
+    Value *val = getValue(colId, rowId);
+
+    if (val)
+    {
+        values.removeAll(val);
+        delete val;
+    }
 }
 
 // вернуть идентификатор журнала
@@ -254,6 +292,24 @@ QString Journal::getName()
     if (this->className != "" && this->courseName != "") return QString("Класс %1:\n%2").arg(this->className).arg(this->courseName);
 
     return "";
+}
+
+// получить следующий внутренний идентификатор колонки
+int Journal::getNextColumnId()
+{
+    return nextColumnId++;
+}
+
+// получить следующий внутренний идентификатор строки
+int Journal::getNextRowId()
+{
+    return nextRowId++;
+}
+
+// получить следующий внутренний идентификатор значения
+int Journal::getNextValueId()
+{
+    return nextValueId++;
 }
 
 // парсим xml
@@ -331,7 +387,7 @@ void Journal::parseNode(QDomNode node)
                 QTextStream out(&data);
                 node.save(out, 1);
 
-                columns.append(new Column(columns.count(), data));
+                columns.append(new Column(getNextColumnId(), data));
             }
             // "вытаскиваем" строки
             else if (e.tagName() == "row")
@@ -340,7 +396,7 @@ void Journal::parseNode(QDomNode node)
                 QTextStream out(&data);
                 node.save(out, 1);
 
-                rows.append(new Row(rows.count(), data));
+                rows.append(new Row(getNextRowId(), data));
             }
             // "вытаскиваем" отметки ученикам
             else if (e.tagName() == "student_value")
@@ -349,7 +405,7 @@ void Journal::parseNode(QDomNode node)
                 QTextStream out(&data);
                 node.save(out, 1);
 
-                values.append(new Value(values.count(), data));
+                values.append(new Value(getNextValueId(), data));
             }
         }
         node = node.nextSibling();

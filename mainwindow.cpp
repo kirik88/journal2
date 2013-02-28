@@ -770,6 +770,9 @@ void MainWindow::on_buttonSave_clicked()
 
         // перестраиваем дерево журналов
         treeJournals->setJournals(journals);
+
+        // обновляем заголовок
+        updateWindowTitle();
     }
 
     // убираем затемнение в случае, если оно не требуется для диалоговых окон
@@ -808,7 +811,7 @@ void MainWindow::on_buttonRefresh_clicked()
         currentJournal->isChanged = false;
 
         // выводим данные журнала
-        tableJournal->setJournal(currentJournal);
+        tableJournal->setJournal(currentJournal, !Security::allowEditJournal(journals->loader->user, currentJournal));
 
         // перестраиваем дерево журналов
         treeJournals->setJournals(journals);
@@ -949,7 +952,7 @@ void MainWindow::treeJournals_openJournal(int id)
         currentJournal->isChanged = false;
 
         // выводим данные журнала
-        tableJournal->setJournal(currentJournal);
+        tableJournal->setJournal(currentJournal, !Security::allowEditJournal(journals->loader->user, currentJournal));
 
         // переключение страницы
         changeMainMode(mmJournal);
@@ -1094,7 +1097,7 @@ void MainWindow::treeJournals_deleteJournal(int id)
             if (currentJournal && (currentJournal->getId() == id))
             {
                 currentJournal = 0;
-                tableJournal->setJournal(0);
+                tableJournal->resetJournal();
 
                 // переходим на страницу с журналами
                 changeMainMode(mmJournals);
@@ -1119,6 +1122,10 @@ void MainWindow::treeJournals_deleteJournal(int id)
 // реакция на изменение данных журнала внутри виджета с таблицей
 void MainWindow::tableJournal_journalChanged()
 {
+    if (!currentJournal) return;
+
+    currentJournal->isChanged = true;
+
     updateWindowTitle();
 }
 

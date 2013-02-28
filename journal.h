@@ -47,6 +47,8 @@ public:
     Column *getColumn(int id);
     Row *getRow(int id);
     Value *getValue(int colId, int rowId);
+    Value *setValue(int colId, int rowId, QString value);
+    void clearValue(int colId, int rowId);
 
     /* функции для работы с внутренними данными */
     int getId();
@@ -56,6 +58,16 @@ public:
 private:
     /* внутренние данные журнала */
     int id;
+
+    /* счетчики данных */
+    int nextColumnId;
+    int nextRowId;
+    int nextValueId;
+
+    /* функции-счетчики данных */
+    int getNextColumnId();
+    int getNextRowId();
+    int getNextValueId();
 
     /* функция парсинга xml-данных */
     void parseNode(QDomNode node);

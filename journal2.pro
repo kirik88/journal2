@@ -37,7 +37,8 @@ SOURCES += main.cpp\
     class.cpp \
     course.cpp \
     journalstreewidget.cpp \
-    security.cpp
+    security.cpp \
+    commentsdialog.cpp
 
 HEADERS  += mainwindow.h \
     journals.h \
@@ -56,10 +57,12 @@ HEADERS  += mainwindow.h \
     class.h \
     course.h \
     journalstreewidget.h \
-    security.h
+    security.h \
+    commentsdialog.h
 
 FORMS    += mainwindow.ui \
-    journaldialog.ui
+    journaldialog.ui \
+    commentsdialog.ui
 
 RESOURCES += \
     journal2.qrc

@@ -67,7 +67,7 @@ JournalDialog::~JournalDialog()
 void JournalDialog::editJournal(Journal *journal)
 {
     // заголовок
-    this->setWindowTitle(tr("Редактирование журнала \"%1\"").arg(journal->getName().replace("\n", " ")));
+    this->setWindowTitle(tr("Редактирование журнала «%1»").arg(journal->getName().replace("\n", " ")));
 
     // наименование
     if (journal->name != "")
