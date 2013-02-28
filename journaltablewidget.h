@@ -10,8 +10,11 @@
 #include "journalitemdelegate.h"
 #include "commentsdialog.h"
 
-// метка "не был" для журнала
-static QString markNone; // будет установлена при инициализации приложения
+// метки для журнала
+// будут установлены при инициализации виджета
+static QString markN; // "не был"
+static QString markB; // "болел"
+static QString markP; // "точка"
 
 class JournalTableWidget : public QTableWidget
 {
@@ -39,6 +42,9 @@ private:
     QAction *action3;
     QAction *action2;
     QAction *action1;
+    QAction *actionN;
+    QAction *actionB;
+    QAction *actionP;
     QAction *actionComments;
     QAction *actionClear;
 

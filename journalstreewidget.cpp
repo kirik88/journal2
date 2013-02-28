@@ -42,7 +42,6 @@ JournalsTreeWidget::JournalsTreeWidget(QWidget *parent) :
 
     actionDelete = new QAction(tr("Удалить"), this);
     QObject::connect(actionDelete, SIGNAL(triggered()), SLOT(contextActionTriggered()));
-    actionDelete->setShortcut(Qt::Key_Delete);
     context->addAction(actionDelete);
 }
 

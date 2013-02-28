@@ -14,8 +14,10 @@ JournalTableWidget::JournalTableWidget(QWidget *parent) :
     this->horizontalHeader()->setMinimumSectionSize(25);
     this->verticalHeader()->setMinimumSectionSize(25);
 
-    // отметка "не был"
-    markNone = tr("н");
+    // отметки
+    markN = tr("Н");
+    markB = tr("Б");
+    markP = tr("•");
 
     // назначаем свою отрисовку ячейки
     this->setItemDelegate(new JournalItemDelegate());
@@ -54,6 +56,23 @@ JournalTableWidget::JournalTableWidget(QWidget *parent) :
 
     context->addSeparator();
 
+    actionN = new QAction(tr("Поставить метку «не был»"), this);
+    QObject::connect(actionN, SIGNAL(triggered()), SLOT(contextActionTriggered()));
+    context->addAction(actionN);
+    actionN->setData(markN);
+
+    actionB = new QAction(tr("Поставить метку «болел»"), this);
+    QObject::connect(actionB, SIGNAL(triggered()), SLOT(contextActionTriggered()));
+    context->addAction(actionB);
+    actionB->setData(markB);
+
+    actionP = new QAction(tr("Поставить «точку»"), this);
+    QObject::connect(actionP, SIGNAL(triggered()), SLOT(contextActionTriggered()));
+    context->addAction(actionP);
+    actionP->setData(markP);
+
+    context->addSeparator();
+
     actionComments = new QAction(tr("Комментарии..."), this);
     QObject::connect(actionComments, SIGNAL(triggered()), SLOT(contextActionTriggered()));
     context->addAction(actionComments);
@@ -63,6 +82,7 @@ JournalTableWidget::JournalTableWidget(QWidget *parent) :
     actionClear = new QAction(tr("Очистить"), this);
     QObject::connect(actionClear, SIGNAL(triggered()), SLOT(contextActionTriggered()));
     context->addAction(actionClear);
+    actionClear->setShortcut(Qt::Key_Delete);
 }
 
 // назначает журнал
@@ -186,7 +206,7 @@ void JournalTableWidget::setItemData(QTableWidgetItem *item, Value *value)
         bool markOk;
         int mark = data.toInt(&markOk);
 
-        if (data.toLower() == markNone)
+        if (data.toLower() == markN)
             item->setData(Qt::UserRole+1, QPixmap(":/icons/16/markn"));
         else if (markOk && 1 <= mark && mark <= 5)
             item->setData(Qt::UserRole+1, QPixmap(tr(":/icons/16/mark%1").arg(mark)));
@@ -231,6 +251,9 @@ void JournalTableWidget::showContextMenu(const QPoint &)
     action3->setVisible(action5->isVisible());
     action2->setVisible(action5->isVisible());
     action1->setVisible(action5->isVisible());
+    actionN->setVisible(action5->isVisible());
+    actionB->setVisible(action5->isVisible());
+    actionP->setVisible(action5->isVisible());
     actionClear->setVisible(action5->isVisible());
 
     // скрываем пункт "очистить", если в данной ячейке нет никакого значения
@@ -250,17 +273,8 @@ void JournalTableWidget::contextActionTriggered()
     // узнаём выбранный элемент контекстного меню
     QAction *action = qobject_cast<QAction *>(sender());
 
-    // если ставим отметку
-    if (action == action1 || action == action2 || action == action3 || action == action4 || action == action5)
-    {
-        QString mark = action->data().toString();
-
-        setItemData(this->currentItem(), journal->setValue(curCol, curRow, mark));
-
-        emit journalChanged();
-    }
-    // если коммертируем
-    else if (action == actionComments)
+    // если комментируем
+    if (action == actionComments)
     {
         Value *value = journal->getValue(curCol, curRow);
 
@@ -293,6 +307,15 @@ void JournalTableWidget::contextActionTriggered()
         journal->clearValue(curCol, curRow);
 
         setItemData(this->currentItem(), 0);
+
+        emit journalChanged();
+    }
+    // если ставим отметку
+    else
+    {
+        QString mark = action->data().toString();
+
+        setItemData(this->currentItem(), journal->setValue(curCol, curRow, mark));
 
         emit journalChanged();
     }
