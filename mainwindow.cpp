@@ -110,6 +110,10 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
     }
 
     // все что относится к таблице
+    if (tableJournal->hasFocus())
+    {
+
+    }
     /*if (ui->tableJournal->hasFocus())
     {
         if (event->type() == QEvent::KeyRelease)

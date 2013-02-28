@@ -50,15 +50,14 @@ signals:
     void editJournal(int id);
     void deleteJournal(int id);
     void createJournal();
-    
-public slots:
+
+private slots:
     /* действия с деревом */
-    void treeJournals_itemDoubleClicked(QTreeWidgetItem *item, int); // двойной клик
+    void itemDoubleClicked(QTreeWidgetItem *item, int); // двойной клик
     void buttonOpen_clicked(); // кнопка "Открыть журнал"
     void buttonCreate_clicked(); // кнопка "Новый журнал"
 
-private slots:
-    /* внутренние действия */
+    /* действия с контекстным меню */
     void contextActionTriggered();
 
 };

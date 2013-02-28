@@ -54,15 +54,22 @@ private:
 
     /* вспомогательные функции */
     void setItemData(QTableWidgetItem *item, Value *value);
+    void showComments();
+    void setNextMark();
+
+protected:
+    /* отлов событий окна */
+    bool eventFilter(QObject *obj, QEvent *event);
     
 signals:
     /* сигналы при работе с журналом */
     void journalChanged(); // журнал изменился
-    
-public slots: 
 
 private slots:
-    /* внутренние действия */
+    /* действия с таблицей */
+    void itemDoubleClicked(QTableWidgetItem *item); // двойной клик
+
+    /* действия с контекстным меню */
     void showContextMenu(const QPoint &);
     void contextActionTriggered();
     

@@ -32,7 +32,7 @@
          </sizepolicy>
         </property>
         <property name="text">
-         <string>Комментарии на отметку:</string>
+         <string>Комментарии к отметке:</string>
         </property>
        </widget>
       </item>

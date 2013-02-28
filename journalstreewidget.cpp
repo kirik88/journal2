@@ -22,7 +22,7 @@ JournalsTreeWidget::JournalsTreeWidget(QWidget *parent) :
 
     // связываем сигналы
     QObject::connect(this, SIGNAL(itemDoubleClicked(QTreeWidgetItem *, int)),
-            this, SLOT(treeJournals_itemDoubleClicked(QTreeWidgetItem *, int)));
+            this, SLOT(itemDoubleClicked(QTreeWidgetItem *, int)));
 
     // контекстное меню
     context = new QMenu();
@@ -239,7 +239,7 @@ void JournalsTreeWidget::contextMenuEvent(QContextMenuEvent *event)
 }
 
 // реакция на двойной клик по элементу
-void JournalsTreeWidget::treeJournals_itemDoubleClicked(QTreeWidgetItem *item, int)
+void JournalsTreeWidget::itemDoubleClicked(QTreeWidgetItem *item, int)
 {
    int id = item->data(0, Qt::UserRole).toInt();
 

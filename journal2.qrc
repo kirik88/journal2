@@ -39,11 +39,13 @@
         <file alias="mark3">icons/16/mark3.ico</file>
         <file alias="mark4">icons/16/mark4.ico</file>
         <file alias="mark5">icons/16/mark5.ico</file>
+        <file alias="markN">icons/16/markN.ico</file>
+        <file alias="markB">icons/16/markB.ico</file>
+        <file alias="markP">icons/16/markP.ico</file>
         <file alias="check">icons/16/check.ico</file>
         <file alias="uncheck">icons/16/uncheck.ico</file>
         <file alias="text">icons/16/text.ico</file>
         <file alias="plus">icons/16/plus.ico</file>
-        <file alias="markn">icons/16/markn.ico</file>
         <file alias="markNone">icons/16/markNone.ico</file>
         <file alias="comments">icons/16/comments.ico</file>
     </qresource>
