@@ -223,8 +223,8 @@ void JournalTableWidget::setItemData(QTableWidgetItem *item, Value *value)
             item->setData(Qt::UserRole + 1, QPixmap(":/icons/16/markN"));
         else if (data.toUpper() == markB)
             item->setData(Qt::UserRole + 1, QPixmap(":/icons/16/markB"));
-        //else if (data.toUpper() == markP)
-        //    item->setData(Qt::UserRole + 1, QPixmap(":/icons/16/markP"));
+        else if (data.toUpper() == markP)
+            item->setData(Qt::UserRole + 1, QPixmap(":/icons/16/markP"));
         else if (markOk && 1 <= mark && mark <= 5)
             item->setData(Qt::UserRole + 1, QPixmap(QString(":/icons/16/mark%1").arg(mark)));
         else

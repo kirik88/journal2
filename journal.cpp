@@ -89,7 +89,7 @@ bool Journal::save(QFile *file)
     {
         Value *val = this->values.at(vl);
 
-        if (val->value != "")
+        if (val->value != "" || val->description != "")
         {
             child = doc.createElement("student_value");
             child.setAttribute("columnId", val->columnId);
