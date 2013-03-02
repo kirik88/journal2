@@ -6,7 +6,7 @@ Column::Column(int id, const QString &xml)
 
     this->name = "";
     this->date = QDateTime::currentDateTime();
-    this->isVisible = false;
+    this->columnTypeId = -1;
     this->description = "";
 
     // загружаем колонку
@@ -19,7 +19,7 @@ Column::Column(Column *other)
 
     this->name = other->name;
     this->date = other->date;
-    this->isVisible = other->isVisible;
+    this->columnTypeId = other->columnTypeId;
     this->description = other->description;
 }
 
@@ -90,9 +90,9 @@ void Column::parseNode(QDomNode node)
             {
                 this->date = QDateTime::fromString(e.text(), dateTimeParseString);
             }
-            else if (e.tagName() == "visible")
+            else if (e.tagName() == "column_type")
             {
-               this->isVisible = (e.text().toInt() == 1);
+               this->columnTypeId = e.text().toInt();
             }
             else if (e.tagName() == "description")
             {

@@ -18,7 +18,7 @@ public:
     /* основные данные */
     QString name;
     QDateTime date;
-    bool isVisible;
+    int columnTypeId;
     QString description;
 
     /* основные функции */

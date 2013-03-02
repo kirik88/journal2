@@ -44,8 +44,15 @@ public:
     /* функции для работы с данными */
     void copyFrom(Journal *from);
     void clear();
+    // колонки
+    Column *createColumn();
     Column *getColumn(int id);
+    void appendColumn(Column *column);
+    void sortColumns();
+    // строки
     Row *getRow(int id);
+    void appendRow(Row *row);
+    // значения
     Value *getValue(int colId, int rowId);
     Value *setValue(int colId, int rowId, QString value);
     Value *setValueDescription(int colId, int rowId, QString description);

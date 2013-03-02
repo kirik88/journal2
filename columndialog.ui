@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>JournalDialog</class>
- <widget class="QDialog" name="JournalDialog">
+ <class>ColumnDialog</class>
+ <widget class="QDialog" name="ColumnDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>341</height>
+    <height>459</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Создание нового журнала</string>
+   <string>Добавление новой колонки</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="spacing">
@@ -63,7 +63,7 @@
             </font>
            </property>
            <property name="text">
-            <string>Укажите данные журнала</string>
+            <string>Укажите данные колонки</string>
            </property>
            <property name="indent">
             <number>15</number>
@@ -74,15 +74,15 @@
           <widget class="QLabel" name="imageLogin">
            <property name="maximumSize">
             <size>
-             <width>48</width>
-             <height>48</height>
+             <width>32</width>
+             <height>32</height>
             </size>
            </property>
            <property name="text">
             <string/>
            </property>
            <property name="pixmap">
-            <pixmap resource="journal2.qrc">:/images/images/main_big.png</pixmap>
+            <pixmap resource="journal2.qrc">:/images/images/column.png</pixmap>
            </property>
           </widget>
          </item>
@@ -135,7 +135,7 @@
          <item>
           <widget class="QLabel" name="labelNameAuto">
            <property name="text">
-            <string>&lt;html&gt;Наименование журнала будет создано автоматически на основе класса и предмета. При необходимости можно ввести &lt;a href=\&quot;back\&quot;&gt;особое наименование&lt;/a&gt;.&lt;/html&gt;
+            <string>&lt;html&gt;Наименование колонки будет создано автоматически на основе даты. При необходимости можно ввести &lt;a href=\&quot;back\&quot;&gt;особое наименование&lt;/a&gt;.&lt;/html&gt;
 </string>
            </property>
            <property name="wordWrap">
@@ -168,58 +168,55 @@
           <number>0</number>
          </property>
          <item row="1" column="0">
-          <widget class="QLabel" name="labelClass">
-           <property name="text">
-            <string>Класс:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QComboBox" name="comboBoxClass"/>
-         </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="labelCourse">
-           <property name="text">
-            <string>Предмет:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1">
-          <widget class="QComboBox" name="comboBoxCourse"/>
-         </item>
-         <item row="3" column="0">
-          <widget class="QLabel" name="labelTeacher">
-           <property name="text">
-            <string>Учитель:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="1">
-          <widget class="QComboBox" name="comboBoxTeacher"/>
-         </item>
-         <item row="4" column="0">
-          <widget class="QLabel" name="labelDescription">
-           <property name="text">
-            <string>Описание:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="1">
-          <widget class="QPlainTextEdit" name="plainTextEditDescription">
-           <property name="tabChangesFocus">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="0">
           <widget class="QLabel" name="labelName">
            <property name="text">
             <string>Наименование:</string>
            </property>
           </widget>
          </item>
-         <item row="0" column="1">
+         <item row="1" column="1">
           <widget class="QLineEdit" name="lineEditName"/>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="labelDate">
+           <property name="text">
+            <string>Дата:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="0">
+          <widget class="QLabel" name="labelDescription">
+           <property name="text">
+            <string>Описание:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="1">
+          <widget class="QPlainTextEdit" name="plainTextEditDescription">
+           <property name="tabChangesFocus">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QCalendarWidget" name="calendarWidget">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>180</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="labelStatus">
+           <property name="text">
+            <string>Статус:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QComboBox" name="comboBoxColumnType"/>
          </item>
         </layout>
        </widget>
@@ -254,9 +251,8 @@
  </widget>
  <tabstops>
   <tabstop>lineEditName</tabstop>
-  <tabstop>comboBoxClass</tabstop>
-  <tabstop>comboBoxCourse</tabstop>
-  <tabstop>comboBoxTeacher</tabstop>
+  <tabstop>comboBoxColumnType</tabstop>
+  <tabstop>calendarWidget</tabstop>
   <tabstop>plainTextEditDescription</tabstop>
   <tabstop>buttonBox</tabstop>
  </tabstops>

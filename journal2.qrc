@@ -31,6 +31,7 @@
         <file alias="marks">images/marks.png</file>
         <file alias="comments_small">images/comments_small.png</file>
         <file>images/main_big.png</file>
+        <file>images/column.png</file>
     </qresource>
     <qresource prefix="/icons/16">
         <file alias="open">icons/16/open.ico</file>
@@ -48,6 +49,7 @@
         <file alias="plus">icons/16/plus.ico</file>
         <file alias="markNone">icons/16/markNone.ico</file>
         <file alias="comments">icons/16/comments.ico</file>
+        <file alias="columnAdd">icons/16/columnAdd.ico</file>
     </qresource>
     <qresource prefix="/lng">
         <file alias="qt_ru.qm">lng/qt_ru.qm</file>

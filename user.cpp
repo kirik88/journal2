@@ -21,7 +21,7 @@ User::User(const QString &xml)
     this->description = "";
     this->userType = utUnknown;
 
-    // загружаем колонку
+    // загружаем пользователя
     if (xml != "") load(xml);
 }
 
@@ -37,7 +37,7 @@ User::User(User *other)
     this->userType = other->userType;
 }
 
-// загрузка класса из файла
+// загрузка пользователя из файла
 bool User::load(QFile *file)
 {
     QDomDocument doc;
@@ -51,7 +51,7 @@ bool User::load(QFile *file)
     return true;
 }
 
-// загрузка класса из строки
+// загрузка пользователя из строки
 bool User::load(const QString &xml)
 {
     QDomDocument doc;
@@ -77,7 +77,7 @@ void User::setId(int id)
     this->id = id;
 }
 
-// вернуть имя класса
+// вернуть имя пользователя
 QString User::getName()
 {
     return this->name;

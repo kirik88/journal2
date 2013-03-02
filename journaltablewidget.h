@@ -5,10 +5,14 @@
 #include <QHeaderView>
 #include <QMenu>
 #include <QContextMenuEvent>
+#include <QLayout>
 
+#include "journals.h"
 #include "journal.h"
 #include "journalitemdelegate.h"
+
 #include "commentsdialog.h"
+#include "columndialog.h"
 
 // метки для журнала
 // будут установлены при инициализации виджета
@@ -21,13 +25,19 @@ class JournalTableWidget : public QTableWidget
     Q_OBJECT
 public:
     explicit JournalTableWidget(QWidget *parent = 0);
+    ~JournalTableWidget();
+
+    /* функции работы с виджетами таблицы */
+    void updateWidgets();
 
     /* функции работы с назначением журнала */
+    void setJournals(Journals *journals);
     void setJournal(Journal *journal, bool isReadOnly);
     void resetJournal();
 
 private:
     /* внутренние данные */
+    Journals *journals;
     Journal *journal;
     QMenu *context;
     bool isReadOnly; // журнал открылся в режиме "только для чтения"
@@ -35,6 +45,10 @@ private:
     /* текущие выбранные колонка и строка */
     int curCol;
     int curRow;
+
+    /* элементы верхней панели */
+    QFrame *frameToolBar;
+    QPushButton *buttonCreateColumn;
 
     /* элементы контекстного меню */
     QAction *action5;
@@ -65,9 +79,16 @@ signals:
     /* сигналы при работе с журналом */
     void journalChanged(); // журнал изменился
 
+    /* сигналы для затемнения */
+    void installGlass();
+    void removeGlass();
+
 private slots:
     /* действия с таблицей */
     void itemDoubleClicked(QTableWidgetItem *item); // двойной клик
+
+    /* верхняя панель */
+    void createColumn();
 
     /* действия с контекстным меню */
     void showContextMenu(const QPoint &);

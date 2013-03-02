@@ -14,6 +14,20 @@ JournalTableWidget::JournalTableWidget(QWidget *parent) :
     this->horizontalHeader()->setMinimumSectionSize(25);
     this->verticalHeader()->setMinimumSectionSize(25);
 
+    // верхняя панель
+    frameToolBar = new QFrame(parent);
+    frameToolBar->setLayout(new QHBoxLayout);
+    frameToolBar->layout()->setContentsMargins(10, 0, 10, 0);
+
+    buttonCreateColumn = new QPushButton(frameToolBar);
+    buttonCreateColumn->setText(tr(" Добавить колонку..."));
+    buttonCreateColumn->setIcon(QIcon(":/icons/16/columnAdd"));
+    buttonCreateColumn->setCursor(Qt::PointingHandCursor);
+    frameToolBar->layout()->addWidget(buttonCreateColumn);
+
+    QSpacerItem *spacer = new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum);
+    frameToolBar->layout()->addItem(spacer);
+
     // отметки
     markN = tr("Н");
     markB = tr("Б");
@@ -27,6 +41,8 @@ JournalTableWidget::JournalTableWidget(QWidget *parent) :
                 this, SLOT(showContextMenu(const QPoint &)));
     QObject::connect(this, SIGNAL(itemDoubleClicked(QTableWidgetItem *)),
             this, SLOT(itemDoubleClicked(QTableWidgetItem *)));
+    QObject::connect(buttonCreateColumn, SIGNAL(clicked()),
+            this, SLOT(createColumn()));
 
     // будем отлавливать события окна
     this->installEventFilter(this);
@@ -98,6 +114,28 @@ JournalTableWidget::JournalTableWidget(QWidget *parent) :
     actionClear->setShortcut(Qt::Key_Delete);
 }
 
+JournalTableWidget::~JournalTableWidget()
+{
+    delete buttonCreateColumn;
+    delete frameToolBar;
+}
+
+// расставляет виджеты
+void JournalTableWidget::updateWidgets()
+{
+    QLayout *layout = this->parentWidget()->layout();
+
+    layout->removeWidget(this);
+    layout->addWidget(frameToolBar);
+    layout->addWidget(this);
+}
+
+// назначает ядро
+void JournalTableWidget::setJournals(Journals *journals)
+{
+    this->journals = journals;
+}
+
 // назначает журнал
 void JournalTableWidget::setJournal(Journal *journal, bool isReadOnly)
 {
@@ -138,17 +176,14 @@ void JournalTableWidget::fillAll()
     // списки видимых колонок и строк
     QList<QTableWidgetItem *> cols, rows;
 
-    // формируем список видимых колонок
+    // формируем список колонок
     for (int col = 0; col < journal->columns.count(); col++)
     {
         Column *column = journal->columns.at(col);
 
-        if (column->isVisible)
-        {
-            QTableWidgetItem *col_item = new QTableWidgetItem(column->getName() + "\t /" + QString::number(column->getId()));
-            col_item->setData(Qt::UserRole, column->getId()); // храним идентификатор колонки
-            cols.append(col_item);
-        }
+        QTableWidgetItem *col_item = new QTableWidgetItem(column->getName() + "\t /" + QString::number(column->getId()));
+        col_item->setData(Qt::UserRole, column->getId()); // храним идентификатор колонки
+        cols.append(col_item);
     }
     // присваиваем колонкам элементы
     setColumnCount(cols.count());
@@ -246,6 +281,42 @@ void JournalTableWidget::setItemData(QTableWidgetItem *item, Value *value)
     }
 }
 
+// создание новой колонки
+void JournalTableWidget::createColumn()
+{
+    // диалоговое окно колонки
+    ColumnDialog *dialog = new ColumnDialog(journals);
+    dialog->setWindowFlags(Qt::Dialog | Qt::WindowCloseButtonHint);
+
+    // затемняем окно
+    emit installGlass();
+
+    // отображаем окно
+    if (dialog->exec() == QDialog::Accepted)
+    {
+        // создаём колонку и присваиваем ей выбранные свойства
+        Column *column = journal->createColumn();
+        column->name = dialog->name;
+        column->columnTypeId = dialog->columnTypeId;
+        column->date = dialog->date;
+        column->description = dialog->description;
+
+        // сортируем колонки
+        journal->sortColumns();
+
+        // перестраиваем таблицу
+        clearAll();
+        fillAll();
+
+        emit journalChanged();
+    }
+
+    // убираем затемнение
+    emit removeGlass();
+
+    delete dialog;
+}
+
 // отображение комментариев к отметке элемента
 void JournalTableWidget::showComments()
 {
@@ -259,7 +330,7 @@ void JournalTableWidget::showComments()
     if (value) dialog->editValue(value);
 
     // затемняем окно
-    //if (useDialogGlass) glass->install(this);
+    emit installGlass();
 
     // отображаем окно
     if (dialog->exec() == QDialog::Accepted)
@@ -270,7 +341,7 @@ void JournalTableWidget::showComments()
     }
 
     // убираем затемнение
-    //if (!useDialogGlass) glass->remove();
+    emit removeGlass();
 
     delete dialog;
 }

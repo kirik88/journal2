@@ -11,6 +11,7 @@
 #include "class.h"
 #include "course.h"
 #include "user.h"
+#include "columntype.h"
 
 class Journals : public QObject
 {
@@ -25,6 +26,7 @@ public:
     QList<Class *> *classes; // список классов
     QList<Course *> *courses; // список предметов
     QList<User *> *teachers; // список учителей
+    QList<ColumnType *> *columnTypes; // список типов колонок
 
     /* основные функции */
     bool tryLogin(const QString &login, const QString &password, QString *message);
@@ -45,6 +47,7 @@ public:
     void parseClasses(QDomNode node);
     void parseCourses(QDomNode node);
     void parseTeachers(QDomNode node);
+    void parseColumnTypes(QDomNode node);
 
     /* функции очистки данных */
     void clear();
@@ -52,6 +55,7 @@ public:
     void clearClasses();
     void clearCourses();
     void clearTeachers();
+    void clearColumnTypes();
 
 private:
 

@@ -87,6 +87,8 @@ private:
     void changeMainMode(MainMode mode);
     void updateWidgets();
     void updateWindowTitle();
+    void fillTree();
+    void fillJournal();
 
     /* функции-проверки */
     bool checkSaveJournal(const QString &text, bool allowSave = true);
@@ -112,6 +114,10 @@ private slots:
 
     /* таблица данных журнала */
     void tableJournal_journalChanged();
+
+    /* работа с затемением окна */
+    void installGlass();
+    void removeGlass();
 
     /* вспомогательные кнопки */
     void labelBack_clicked(); // надпись-кнопка "Вернуться к журналу"

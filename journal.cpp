@@ -77,7 +77,7 @@ bool Journal::save(QFile *file)
         child.setAttribute("id", column->getId());
         if (column->name != "") child.setAttribute("name", column->name);
         child.setAttribute("date", column->date.toString(dateTimeParseString));
-        child.setAttribute("visible", column->isVisible ? "1" : "0");
+        child.setAttribute("column_type", column->columnTypeId);
         if (column->description != "") child.setAttribute("description", column->description);
         element.appendChild(child);
     }
@@ -92,8 +92,8 @@ bool Journal::save(QFile *file)
         if (val->value != "" || val->description != "")
         {
             child = doc.createElement("student_value");
-            child.setAttribute("columnId", val->columnId);
-            child.setAttribute("rowId", val->rowId);
+            child.setAttribute("column", val->columnId);
+            child.setAttribute("row", val->rowId);
             child.setAttribute("value", val->value);
             if (val->description != "") child.setAttribute("description", val->description);
             element.appendChild(child);
@@ -201,6 +201,15 @@ void Journal::clear()
     }
 }
 
+// создать новую колонку с присвоением уникального идентификатора
+Column *Journal::createColumn()
+{
+    Column *column = new Column(getNextColumnId(), "");
+    columns.append(column);
+
+    return column;
+}
+
 // вернуть колонку по идентификатору
 Column *Journal::getColumn(int id)
 {
@@ -214,6 +223,26 @@ Column *Journal::getColumn(int id)
     return 0;
 }
 
+// внести колонку в список колонок
+void Journal::appendColumn(Column *column)
+{
+    columns.append(column);
+
+    if (column->getId() >= nextColumnId) nextColumnId = column->getId() + 1;
+}
+
+// для сортировки колонок по убыванию даты
+bool columnGreaterThan(Column *&c1, Column *&c2)
+{
+    return c1->date > c2->date;
+}
+
+// отсортировать список колонок
+void Journal::sortColumns()
+{
+    qSort(columns.begin(), columns.end(), columnGreaterThan);
+}
+
 // вернуть строку по идентификатору
 Row *Journal::getRow(int id)
 {
@@ -225,6 +254,14 @@ Row *Journal::getRow(int id)
     }
 
     return 0;
+}
+
+// внести строку в список
+void Journal::appendRow(Row *row)
+{
+    rows.append(row);
+
+    if (row->getId() >= nextRowId) nextRowId = row->getId() + 1;
 }
 
 // вернуть значение по идентификаторам колонки и строки
@@ -405,7 +442,8 @@ void Journal::parseNode(QDomNode node)
                 QTextStream out(&data);
                 node.save(out, 1);
 
-                columns.append(new Column(getNextColumnId(), data));
+                // идентификатор проставится при загрузке
+                appendColumn(new Column(-1, data));
             }
             // "вытаскиваем" строки
             else if (e.tagName() == "row")
@@ -414,7 +452,8 @@ void Journal::parseNode(QDomNode node)
                 QTextStream out(&data);
                 node.save(out, 1);
 
-                rows.append(new Row(getNextRowId(), data));
+                // идентификатор проставится при загрузке
+                appendRow(new Row(-1, data));
             }
             // "вытаскиваем" отметки ученикам
             else if (e.tagName() == "student_value")

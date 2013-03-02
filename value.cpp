@@ -23,7 +23,7 @@ Value::Value(Value *other)
     this->description = other->description;
 }
 
-// загрузка колонки из файла
+// загрузка значения из файла
 bool Value::load(QFile *file)
 {
     QDomDocument doc;
@@ -37,7 +37,7 @@ bool Value::load(QFile *file)
     return true;
 }
 
-// загрузка колонки из строки
+// загрузка значения из строки
 bool Value::load(const QString &xml)
 {
     QDomDocument doc;

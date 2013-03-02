@@ -10,6 +10,7 @@ Journals::Journals(Loader *loader) : QObject(0)
     classes = new QList<Class *>();
     courses = new QList<Course *>();
     teachers = new QList<User *>();
+    columnTypes = new QList<ColumnType *>();
 }
 
 Journals::~Journals()
@@ -23,6 +24,7 @@ Journals::~Journals()
     if (classes) delete classes;
     if (courses) delete courses;
     if (teachers) delete teachers;
+    if (columnTypes) delete columnTypes;
 }
 
 // попробовать подключиться к системе под логином (login) и паролем (password), с выводом сообщения об ошибке (message)
@@ -151,6 +153,8 @@ bool Journals::saveJournal(Journal *&journal, QString *message, bool fullSave)
         delete journalFile;
         return false;
     }
+
+    //journalFile->copy("D:\\journal.xml");
 
     delete journalFile;
     return true;
@@ -334,6 +338,15 @@ bool Journals::refreshData(QString *message)
             parseTeachers(docElem);
         }
 
+        // формируем на основе ответа список типов колонок
+        if (doc.setContent(answer->getValue("column_types")))
+        {
+            QDomElement docElem = doc.documentElement();
+
+            // переходим к парсингу
+            parseColumnTypes(docElem);
+        }
+
         return true;
     }
 
@@ -427,6 +440,35 @@ void Journals::parseTeachers(QDomNode node)
     }
 }
 
+// парсим xml с типами колонок
+void Journals::parseColumnTypes(QDomNode node)
+{
+    while (!node.isNull())
+    {
+        QDomElement e = node.toElement(); // пробуем преобразовать узел в элемент
+        if (!e.isNull())
+        {
+            // для корневого узла спускаемся ниже
+            if (e.tagName() == "column_types")
+            {
+                if (e.hasChildNodes()) parseColumnTypes(node.firstChild());
+            }
+            // для узлов-журналов
+            else if (e.tagName() == "column_type")
+            {
+                QString data;
+                QTextStream out(&data);
+                node.save(out, 1);
+
+                columnTypes->append(new ColumnType(data));
+
+                //qDebug() << "ColumnType: " << columnTypes->at(columnTypes->count() - 1)->getName();
+            }
+        }
+        node = node.nextSibling();
+    }
+}
+
 // очистка данных
 void Journals::clear()
 {
@@ -434,6 +476,7 @@ void Journals::clear()
     clearClasses();
     clearCourses();
     clearTeachers();
+    clearColumnTypes();
 }
 
 // очистка списка журналов
@@ -477,5 +520,17 @@ void Journals::clearTeachers()
     {
         delete teachers->at(0);
         teachers->removeAt(0);
+    }
+}
+
+// очистка списка типов колонок
+void Journals::clearColumnTypes()
+{
+    if (!columnTypes) return;
+
+    while (columnTypes->count() > 0)
+    {
+        delete columnTypes->at(0);
+        columnTypes->removeAt(0);
     }
 }

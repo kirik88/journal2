@@ -70,13 +70,14 @@ void JournalDialog::editJournal(Journal *journal)
     this->setWindowTitle(tr("Редактирование журнала «%1»").arg(journal->getName().replace("\n", " ")));
 
     // наименование
+    ui->lineEditName->setText(journal->getName());
     if (journal->name != "")
     {
         ui->labelNameAuto->hide();
         ui->labelName->show();
         ui->lineEditName->show();
         ui->lineEditName->setText(journal->name);
-    }
+    }   
 
     // класс
     if (journal->classId > 0)

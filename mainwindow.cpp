@@ -60,6 +60,7 @@ void MainWindow::prepareApplication()
     tableJournal = new JournalTableWidget(ui->tableJournal->parentWidget());
     delete ui->tableJournal;
     tableJournal->parentWidget()->layout()->addWidget(tableJournal);
+    tableJournal->updateWidgets();
 
     // панель инструментов
     ui->toolBar->addWidget(ui->buttonJournals);
@@ -375,6 +376,10 @@ void MainWindow::connectSignals()
     /* таблица */
     QObject::connect(tableJournal, SIGNAL(journalChanged()),
             this, SLOT(tableJournal_journalChanged()));
+    QObject::connect(tableJournal, SIGNAL(installGlass()),
+            this, SLOT(installGlass()));
+    QObject::connect(tableJournal, SIGNAL(removeGlass()),
+            this, SLOT(removeGlass()));
 
 //    // говорим, что у заголовков тоже есть контекстное меню
 //    tableJournal->horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -579,6 +584,26 @@ void MainWindow::updateWindowTitle()
     if (currentJournal) this->setWindowModified(currentJournal->isChanged);
 }
 
+// инициализация дерева журналов
+void MainWindow::fillTree()
+{
+    treeJournals->setJournals(journals);
+}
+
+// инициализация таблицы журнала
+void MainWindow::fillJournal()
+{
+    if (currentJournal)
+    {
+        tableJournal->setJournals(journals);
+        tableJournal->setJournal(currentJournal, !Security::allowEditJournal(journals->loader->user, currentJournal));
+    }
+    else
+    {
+        tableJournal->resetJournal();
+    }
+}
+
 // реакция на закрытие приложения
 void MainWindow::closeEvent(QCloseEvent *event)
 {
@@ -699,7 +724,7 @@ void MainWindow::on_buttonLogin_clicked()
         )
     {
         // строим дерево журналов
-        treeJournals->setJournals(journals);
+        fillTree();
 
         // меняем страницуr
         changeMainMode(mmJournals);
@@ -773,7 +798,7 @@ void MainWindow::on_buttonSave_clicked()
         currentJournal->isNew = false;
 
         // перестраиваем дерево журналов
-        treeJournals->setJournals(journals);
+        fillTree();
 
         // обновляем заголовок
         updateWindowTitle();
@@ -815,10 +840,10 @@ void MainWindow::on_buttonRefresh_clicked()
         currentJournal->isChanged = false;
 
         // выводим данные журнала
-        tableJournal->setJournal(currentJournal, !Security::allowEditJournal(journals->loader->user, currentJournal));
+        fillJournal();
 
         // перестраиваем дерево журналов
-        treeJournals->setJournals(journals);
+        fillTree();
 
         // переключаем страницу
         changeMainMode(mmJournal);
@@ -956,7 +981,7 @@ void MainWindow::treeJournals_openJournal(int id)
         currentJournal->isChanged = false;
 
         // выводим данные журнала
-        tableJournal->setJournal(currentJournal, !Security::allowEditJournal(journals->loader->user, currentJournal));
+        fillJournal();
 
         // переключение страницы
         changeMainMode(mmJournal);
@@ -1101,7 +1126,7 @@ void MainWindow::treeJournals_deleteJournal(int id)
             if (currentJournal && (currentJournal->getId() == id))
             {
                 currentJournal = 0;
-                tableJournal->resetJournal();
+                fillJournal();
 
                 // переходим на страницу с журналами
                 changeMainMode(mmJournals);
@@ -1131,6 +1156,18 @@ void MainWindow::tableJournal_journalChanged()
     currentJournal->isChanged = true;
 
     updateWindowTitle();
+}
+
+// установить затеменение
+void MainWindow::installGlass()
+{
+    if (useDialogGlass) glass->install(this);
+}
+
+// удалить затемнение
+void MainWindow::removeGlass()
+{
+    glass->remove();
 }
 
 // реакция на нажатие надписи-ссылки "Вернуться к журналу"

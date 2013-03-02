@@ -50,7 +50,7 @@ JournalsTreeWidget::~JournalsTreeWidget()
     delete context;
 }
 
-// назначает журнал
+// назначает ядро
 void JournalsTreeWidget::setJournals(Journals *journals)
 {
     this->journals = journals;

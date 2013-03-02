@@ -1,15 +1,17 @@
-#include "course.h"
+#include "item.h"
 
-Course::Course(const QString &xml)
+Item::Item(const QString &xml)
 {
     this->name = "";
     this->description = "";
 
-    // загружаем предмет
+    // загружаем
     if (xml != "") load(xml);
 }
 
-Course::Course(Course *other)
+Item::~Item() {}
+
+Item::Item(Item *other)
 {
     this->id = other->id;
 
@@ -17,8 +19,8 @@ Course::Course(Course *other)
     this->description = other->description;
 }
 
-// загрузка предмета из файла
-bool Course::load(QFile *file)
+// загрузка из файла
+bool Item::load(QFile *file)
 {
     QDomDocument doc;
     if (!doc.setContent(file->readAll())) return false;
@@ -31,8 +33,8 @@ bool Course::load(QFile *file)
     return true;
 }
 
-// загрузка предмета из строки
-bool Course::load(const QString &xml)
+// загрузка из строки
+bool Item::load(const QString &xml)
 {
     QDomDocument doc;
     if (!doc.setContent(xml)) return false;
@@ -45,34 +47,27 @@ bool Course::load(const QString &xml)
     return true;
 }
 
-// вернуть идентификатор предмета
-int Course::getId()
+// вернуть идентификатор
+int Item::getId()
 {
     return id;
 }
 
-// вернуть имя предмета
-QString Course::getName()
+// вернуть имя
+QString Item::getName()
 {
     return this->name;
 }
 
 // парсим xml
-void Course::parseNode(QDomNode node)
+void Item::parseNode(QDomNode node)
 {
     while (!node.isNull())
     {
         QDomElement e = node.toElement(); // пробуем преобразовать узел в элемент
         if (!e.isNull())
         {
-            // для корневого узла
-            if (e.tagName() == "course")
-            {
-                this->id = e.attribute("id").toInt();
-                if (e.hasChildNodes()) parseNode(node.firstChild());
-            }
-            // другие используем
-            else if (e.tagName() == "name")
+            if (e.tagName() == "name")
             {
                 this->name = e.text();
             }

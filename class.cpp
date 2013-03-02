@@ -8,7 +8,7 @@ Class::Class(const QString &xml)
     this->isArchived = false;
     this->description = "";
 
-    // загружаем колонку
+    // загружаем класс
     if (xml != "") load(xml);
 }
 
