@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>459</height>
+    <height>467</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -167,38 +167,28 @@
          <property name="bottomMargin">
           <number>0</number>
          </property>
-         <item row="1" column="0">
-          <widget class="QLabel" name="labelName">
-           <property name="text">
-            <string>Наименование:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QLineEdit" name="lineEditName"/>
-         </item>
-         <item row="3" column="0">
+         <item row="4" column="0">
           <widget class="QLabel" name="labelDate">
            <property name="text">
             <string>Дата:</string>
            </property>
           </widget>
          </item>
-         <item row="7" column="0">
+         <item row="8" column="0">
           <widget class="QLabel" name="labelDescription">
            <property name="text">
             <string>Описание:</string>
            </property>
           </widget>
          </item>
-         <item row="7" column="1">
+         <item row="8" column="1">
           <widget class="QPlainTextEdit" name="plainTextEditDescription">
            <property name="tabChangesFocus">
             <bool>true</bool>
            </property>
           </widget>
          </item>
-         <item row="3" column="1">
+         <item row="4" column="1">
           <widget class="QCalendarWidget" name="calendarWidget">
            <property name="minimumSize">
             <size>
@@ -208,15 +198,69 @@
            </property>
           </widget>
          </item>
-         <item row="2" column="0">
+         <item row="3" column="0">
           <widget class="QLabel" name="labelStatus">
            <property name="text">
             <string>Статус:</string>
            </property>
           </widget>
          </item>
-         <item row="2" column="1">
+         <item row="3" column="1">
           <widget class="QComboBox" name="comboBoxColumnType"/>
+         </item>
+         <item row="1" column="1">
+          <widget class="QFrame" name="frameName">
+           <property name="frameShape">
+            <enum>QFrame::NoFrame</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Raised</enum>
+           </property>
+           <layout class="QHBoxLayout" name="horizontalLayout_2">
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QLineEdit" name="lineEditName"/>
+            </item>
+            <item>
+             <widget class="QToolButton" name="toolButtonAuto">
+              <property name="toolTip">
+               <string>Формировать название автоматически</string>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="icon">
+               <iconset resource="journal2.qrc">
+                <normaloff>:/icons/16/delete</normaloff>:/icons/16/delete</iconset>
+              </property>
+              <property name="autoRaise">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="labelName">
+           <property name="text">
+            <string>Наименование:</string>
+           </property>
+          </widget>
          </item>
         </layout>
        </widget>
@@ -250,7 +294,6 @@
   </layout>
  </widget>
  <tabstops>
-  <tabstop>lineEditName</tabstop>
   <tabstop>comboBoxColumnType</tabstop>
   <tabstop>calendarWidget</tabstop>
   <tabstop>plainTextEditDescription</tabstop>

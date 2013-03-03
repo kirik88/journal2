@@ -48,6 +48,7 @@ public:
     Column *createColumn();
     Column *getColumn(int id);
     void appendColumn(Column *column);
+    void removeColumn(int id);
     void sortColumns();
     // строки
     Row *getRow(int id);

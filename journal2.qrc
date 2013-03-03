@@ -50,6 +50,7 @@
         <file alias="markNone">icons/16/markNone.ico</file>
         <file alias="comments">icons/16/comments.ico</file>
         <file alias="columnAdd">icons/16/columnAdd.ico</file>
+        <file alias="delete">icons/16/delete.ico</file>
     </qresource>
     <qresource prefix="/lng">
         <file alias="qt_ru.qm">lng/qt_ru.qm</file>

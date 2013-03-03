@@ -32,8 +32,12 @@ public:
 private:
     Ui::JournalDialog *ui;
 
+    /* автоматическое имя */
+    QString autoName;
+
 private slots:
     void on_labelNameAuto_linkActivated();
+    void on_toolButtonAuto_clicked();
     void on_buttonBox_accepted();
     void on_buttonBox_rejected();
 };

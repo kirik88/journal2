@@ -608,7 +608,7 @@ void MainWindow::fillJournal()
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     // запрос на сохранение
-    if (currentJournal && !checkSaveJournal(tr("Сохранить изменения в журнале «%1» перед закрытием?").arg(currentJournal->getName())))
+    if (currentJournal && !checkSaveJournal(tr("Сохранить изменения в журнале «%1» перед закрытием?").arg(currentJournal->getName().replace("\n", " "))))
     {
         event->ignore();
     }
@@ -962,7 +962,7 @@ void MainWindow::treeJournals_createJournal()
 // событие при открытии журнала
 void MainWindow::treeJournals_openJournal(int id)
 {
-    if (currentJournal && !checkSaveJournal(tr("Сохранить изменения в журнале «%1» перед открытием выбранного?").arg(currentJournal->getName())))
+    if (currentJournal && !checkSaveJournal(tr("Сохранить изменения в журнале «%1» перед открытием выбранного?").arg(currentJournal->getName().replace("\n", " "))))
         return;
 
     // затемняем окно
@@ -1090,7 +1090,7 @@ void MainWindow::treeJournals_deleteJournal(int id)
 
     // подтверждение
     QMessageBox *question = new QMessageBox(QMessageBox::Question, tr("Удаление журнала"),
-                                            tr("Вы действительно хотите удалить журнал «%1»%2?").arg(journal->getName()).arg(journal->isDeleted ? " без возможности восстановления" : ""));
+                                            tr("Вы действительно хотите удалить журнал «%1»%2?").arg(journal->getName().replace("\n", " ")).arg(journal->isDeleted ? " без возможности восстановления" : ""));
 
     // кнопка "Отмена"
     QPushButton *btn = new QPushButton(QApplication::style()->standardIcon(QStyle::SP_DialogCancelButton), tr("Отмена"));
@@ -1099,9 +1099,6 @@ void MainWindow::treeJournals_deleteJournal(int id)
     // кнопка "Удалить"
     btn = new QPushButton(QApplication::style()->standardIcon(QStyle::SP_DialogDiscardButton), tr("Удалить%1").arg(journal->isDeleted ? " навсегда" : ""));
     question->addButton(btn, QMessageBox::AcceptRole);
-
-    if (journal && !checkSaveJournal(tr("Вы действительно хотите удалить журнал «%1»?").arg(journal->getName())))
-        return;
 
     // установка затемнения
     if (useDialogGlass) glass->install(this);

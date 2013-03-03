@@ -231,6 +231,34 @@ void Journal::appendColumn(Column *column)
     if (column->getId() >= nextColumnId) nextColumnId = column->getId() + 1;
 }
 
+// удалить колонку из списка колонок
+void Journal::removeColumn(int id)
+{
+    Column *column = getColumn(id);
+    if (!column) return;
+
+    // удаляем колонку
+    columns.removeAll(column);
+    delete column;
+
+    // удаляем все значения этой колонки
+    int val = 0;
+    while (values.count() > val)
+    {
+        Value *value = values.at(val);
+
+        if (value->columnId == id)
+        {
+            values.removeAll(value);
+            delete value;
+
+            continue;
+        }
+
+        val++;
+    }
+}
+
 // для сортировки колонок по убыванию даты
 bool columnGreaterThan(Column *&c1, Column *&c2)
 {

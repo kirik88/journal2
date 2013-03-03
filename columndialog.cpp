@@ -9,9 +9,11 @@ ColumnDialog::ColumnDialog(Journals *journals, QWidget *parent) :
 
     if (!journals) return;
 
+    autoName = "";
+
     // скрываем виджеты ввода наименования
     ui->labelName->hide();
-    ui->lineEditName->hide();
+    ui->frameName->hide();
 
     // дата по умолчанию - сегодняшняя
     ui->calendarWidget->setSelectedDate(QDate::currentDate());
@@ -40,12 +42,12 @@ void ColumnDialog::editColumn(Column *column)
     this->setWindowTitle(tr("Редактирование колонки «%1»").arg(column->getName().replace("\n", " ")));
 
     // наименование
-    ui->lineEditName->setText(column->getName());
+    autoName = column->getName();
     if (column->name != "")
     {
         ui->labelNameAuto->hide();
         ui->labelName->show();
-        ui->lineEditName->show();
+        ui->frameName->show();
         ui->lineEditName->setText(column->name);
     }
 
@@ -70,12 +72,29 @@ void ColumnDialog::on_labelNameAuto_linkActivated()
     // скрываем надпись
     ui->labelNameAuto->hide();
 
+    // устанавливаем автоматически сформированое имя
+    ui->lineEditName->setText(autoName);
+
     // показываем виджеты ввода наименования
     ui->labelName->show();
-    ui->lineEditName->show();
+    ui->frameName->show();
 
     // ставим фокус
     ui->lineEditName->setFocus();
+}
+
+// реакция на нажатие кнопки "формировать название автоматически"
+void ColumnDialog::on_toolButtonAuto_clicked()
+{
+    // показываем надпись
+    ui->labelNameAuto->show();
+
+    // удаляем имя
+    ui->lineEditName->setText("");
+
+    // скрываем виджеты ввода наименования
+    ui->labelName->hide();
+    ui->frameName->hide();
 }
 
 // реакция на нажатие кнопки "OK"

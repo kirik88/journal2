@@ -14,7 +14,7 @@ JournalTableWidget::JournalTableWidget(QWidget *parent) :
     this->horizontalHeader()->setMinimumSectionSize(25);
     this->verticalHeader()->setMinimumSectionSize(25);
 
-    // верхняя панель
+    // панель инструментов
     frameToolBar = new QFrame(parent);
     frameToolBar->setLayout(new QHBoxLayout);
     frameToolBar->layout()->setContentsMargins(10, 0, 10, 0);
@@ -36,13 +36,23 @@ JournalTableWidget::JournalTableWidget(QWidget *parent) :
     // назначаем свою отрисовку ячейки
     this->setItemDelegate(new JournalItemDelegate());
 
+    // отмечаем, что у колонки тоже есть контекстное меню
+    this->horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
+
     // связываем сигналы
+    // таблица
     QObject::connect(this, SIGNAL(customContextMenuRequested(const QPoint &)),
-                this, SLOT(showContextMenu(const QPoint &)));
+                     this, SLOT(showContextMenu(const QPoint &)));
     QObject::connect(this, SIGNAL(itemDoubleClicked(QTableWidgetItem *)),
-            this, SLOT(itemDoubleClicked(QTableWidgetItem *)));
+                     this, SLOT(itemDoubleClicked(QTableWidgetItem *)));
+    // панель инструментов
     QObject::connect(buttonCreateColumn, SIGNAL(clicked()),
-            this, SLOT(createColumn()));
+                     this, SLOT(createColumn()));
+    // колонки
+    QObject::connect(this->horizontalHeader(), SIGNAL(sectionClicked(int)),
+                     this, SLOT(columnClicked(int)));
+    QObject::connect(this->horizontalHeader(), SIGNAL(customContextMenuRequested(const QPoint &)),
+                     this, SLOT(columnContext(const QPoint &)));
 
     // будем отлавливать события окна
     this->installEventFilter(this);
@@ -112,10 +122,38 @@ JournalTableWidget::JournalTableWidget(QWidget *parent) :
     QObject::connect(actionClear, SIGNAL(triggered()), SLOT(contextActionTriggered()));
     context->addAction(actionClear);
     actionClear->setShortcut(Qt::Key_Delete);
+
+    // контекстное меню колонки
+    contextColumn = new QMenu();
+
+    actionColumnEdit = new QAction(tr("Изменить..."), this);
+    QObject::connect(actionColumnEdit, SIGNAL(triggered()), SLOT(contextActionColumnTriggered()));
+    contextColumn->addAction(actionColumnEdit);
+
+    actionColumnDelete = new QAction(tr("Удалить"), this);
+    QObject::connect(actionColumnDelete, SIGNAL(triggered()), SLOT(contextActionColumnTriggered()));
+    contextColumn->addAction(actionColumnDelete);
 }
 
 JournalTableWidget::~JournalTableWidget()
 {
+    // контекстное меню
+    delete action5;
+    delete action4;
+    delete action3;
+    delete action2;
+    delete action1;
+    delete actionN;
+    delete actionB;
+    delete actionP;
+    delete actionComments;
+    delete actionClear;
+
+    // контекстное меню колонки
+    delete actionColumnEdit;
+    delete actionColumnDelete;
+
+    // панель инструментов
     delete buttonCreateColumn;
     delete frameToolBar;
 }
@@ -141,6 +179,8 @@ void JournalTableWidget::setJournal(Journal *journal, bool isReadOnly)
 {
     this->journal = journal;
     this->isReadOnly = isReadOnly;
+
+    buttonCreateColumn->setVisible(!isReadOnly);
 
     clearAll();
     fillAll();
@@ -320,7 +360,7 @@ void JournalTableWidget::createColumn()
 // отображение комментариев к отметке элемента
 void JournalTableWidget::showComments()
 {
-    Value *value = journal->getValue(curCol, curRow);
+    Value *value = journal->getValue(curColId, curRowId);
 
     // диалоговое окно комментариев
     CommentsDialog *dialog = new CommentsDialog(isReadOnly);
@@ -335,7 +375,7 @@ void JournalTableWidget::showComments()
     // отображаем окно
     if (dialog->exec() == QDialog::Accepted)
     {
-        setItemData(this->currentItem(), journal->setValueDescription(curCol, curRow, dialog->comments));
+        setItemData(this->currentItem(), journal->setValueDescription(curColId, curRowId, dialog->comments));
 
         emit journalChanged();
     }
@@ -349,8 +389,8 @@ void JournalTableWidget::showComments()
 // быстрая смена отметки
 void JournalTableWidget::setNextMark()
 {
-    Value *value = journal->getValue(curCol, curRow);
-    if (!value) value = journal->setValue(curCol, curRow, "");
+    Value *value = journal->getValue(curColId, curRowId);
+    if (!value) value = journal->setValue(curColId, curRowId, "");
 
     int len = 5;
     int marks[] = {5, 4, 3, 2, 1};
@@ -379,6 +419,90 @@ void JournalTableWidget::setNextMark()
     emit journalChanged();
 }
 
+// изменение колонки
+void JournalTableWidget::editColumn(int colId)
+{
+    // получаем колонку по идентификатору
+    Column *column = journal->getColumn(colId);
+    if (!column) return;
+
+    // диалоговое окно колонки
+    ColumnDialog *dialog = new ColumnDialog(journals);
+    dialog->setWindowFlags(Qt::Dialog | Qt::WindowCloseButtonHint);
+
+    // посылаем в диалог данные выбранной колонки
+    dialog->editColumn(column);
+
+    // затемняем окно
+    emit installGlass();
+
+    // отображаем окно
+    if (dialog->exec() == QDialog::Accepted)
+    {
+        // создаём колонку и присваиваем ей выбранные свойства
+        column->name = dialog->name;
+        column->columnTypeId = dialog->columnTypeId;
+        column->date = dialog->date;
+        column->description = dialog->description;
+
+        // сортируем колонки
+        journal->sortColumns();
+
+        // перестраиваем таблицу
+        clearAll();
+        fillAll();
+
+        emit journalChanged();
+    }
+
+    // убираем затемнение
+    emit removeGlass();
+
+    delete dialog;
+}
+
+// удаление колонки
+void JournalTableWidget::deleteColumn(int colId)
+{
+    // защита от дурака
+    if (!journal || isReadOnly) return;
+
+    // получаем колонку по идентификатору
+    Column *column = journal->getColumn(colId);
+    if (!column) return;
+
+    // подтверждение
+    QMessageBox *question = new QMessageBox(QMessageBox::Question, tr("Удаление колонки"),
+                                            tr("Вы действительно хотите удалить колонку «%1»?").arg(column->getName()));
+
+    // кнопка "Отмена"
+    QPushButton *btn = new QPushButton(QApplication::style()->standardIcon(QStyle::SP_DialogCancelButton), tr("Отмена"));
+    question->addButton(btn, QMessageBox::RejectRole);
+
+    // кнопка "Удалить"
+    btn = new QPushButton(QApplication::style()->standardIcon(QStyle::SP_DialogDiscardButton), tr("Удалить"));
+    question->addButton(btn, QMessageBox::AcceptRole);
+
+    // установка затемнения
+    emit installGlass();
+
+    // подтвердили
+    if (question->exec() == QMessageBox::Accepted)
+    {
+        // удаляем колонку из журнала
+        journal->removeColumn(colId);
+
+        // перестраиваем таблицу
+        clearAll();
+        fillAll();
+
+        emit journalChanged();
+    }
+
+    // убираем затемнение
+    emit removeGlass();
+}
+
 // отлов событий окна
 // используется, чтобы отловить нажатие "горячих клавиш"
 bool JournalTableWidget::eventFilter(QObject *obj, QEvent *event)
@@ -392,12 +516,12 @@ bool JournalTableWidget::eventFilter(QObject *obj, QEvent *event)
         // находим колонку ячейки
         QTableWidgetItem *col_item = this->horizontalHeaderItem(item->column());
         if (!col_item) return QTableWidget::eventFilter(obj, event);
-        curCol = col_item->data(Qt::UserRole).toInt();
+        curColId = col_item->data(Qt::UserRole).toInt();
 
         // находим строку ячейки
         QTableWidgetItem *row_item = this->verticalHeaderItem(item->row());
         if (!row_item) return QTableWidget::eventFilter(obj, event);
-        curRow = row_item->data(Qt::UserRole).toInt();
+        curRowId = row_item->data(Qt::UserRole).toInt();
 
         QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
         int key = keyEvent->key();
@@ -423,39 +547,39 @@ bool JournalTableWidget::eventFilter(QObject *obj, QEvent *event)
             {
             // выставление конкретного значения
             case Qt::Key_1:
-                setItemData(this->currentItem(), journal->setValue(curCol, curRow, "1"));
+                setItemData(this->currentItem(), journal->setValue(curColId, curRowId, "1"));
                 emit journalChanged();
                 break;
             case Qt::Key_2:
-                setItemData(this->currentItem(), journal->setValue(curCol, curRow, "2"));
+                setItemData(this->currentItem(), journal->setValue(curColId, curRowId, "2"));
                 emit journalChanged();
                 break;
             case Qt::Key_3:
-                setItemData(this->currentItem(), journal->setValue(curCol, curRow, "3"));
+                setItemData(this->currentItem(), journal->setValue(curColId, curRowId, "3"));
                 emit journalChanged();
                 break;
             case Qt::Key_4:
-                setItemData(this->currentItem(), journal->setValue(curCol, curRow, "4"));
+                setItemData(this->currentItem(), journal->setValue(curColId, curRowId, "4"));
                 emit journalChanged();
                 break;
             case Qt::Key_5:
-                setItemData(this->currentItem(), journal->setValue(curCol, curRow, "5"));
+                setItemData(this->currentItem(), journal->setValue(curColId, curRowId, "5"));
                 emit journalChanged();
                 break;
 
             // выставление метки "не был"
             case Qt::Key_Y:
-                setItemData(this->currentItem(), journal->setValue(curCol, curRow, markN));
+                setItemData(this->currentItem(), journal->setValue(curColId, curRowId, markN));
                 emit journalChanged();
                 break;
             // выставление метки "болел"
             case Qt::Key_Comma:
-                setItemData(this->currentItem(), journal->setValue(curCol, curRow, markB));
+                setItemData(this->currentItem(), journal->setValue(curColId, curRowId, markB));
                 emit journalChanged();
                 break;
             // выставление "точки"
             case Qt::Key_Slash:
-                setItemData(this->currentItem(), journal->setValue(curCol, curRow, markP));
+                setItemData(this->currentItem(), journal->setValue(curColId, curRowId, markP));
                 emit journalChanged();
                 break;
 
@@ -468,7 +592,7 @@ bool JournalTableWidget::eventFilter(QObject *obj, QEvent *event)
             case Qt::Key_Backspace:
             case Qt::Key_Delete:
             case Qt::Key_Period:
-                journal->clearValue(curCol, curRow);
+                journal->clearValue(curColId, curRowId);
                 setItemData(this->currentItem(), 0);
                 emit journalChanged();
                 break;
@@ -488,14 +612,28 @@ void JournalTableWidget::itemDoubleClicked(QTableWidgetItem *item)
     // находим колонку ячейки
     QTableWidgetItem *col_item = this->horizontalHeaderItem(item->column());
     if (!col_item) return;
-    curCol = col_item->data(Qt::UserRole).toInt();
+    curColId = col_item->data(Qt::UserRole).toInt();
 
     // находим строку ячейки
     QTableWidgetItem *row_item = this->verticalHeaderItem(item->row());
     if (!row_item) return;
-    curRow = row_item->data(Qt::UserRole).toInt();
+    curRowId = row_item->data(Qt::UserRole).toInt();
 
     showComments();
+}
+
+// реакция на щелчок по заголовку колонки
+void JournalTableWidget::columnClicked(int col)
+{
+    // защита от дурака
+    if (!journal || isReadOnly) return;
+
+    // находим колонку ячейки
+    QTableWidgetItem *col_item = this->horizontalHeaderItem(col);
+    if (!col_item) return;
+    curColId = col_item->data(Qt::UserRole).toInt();
+
+    contextColumn->exec(QCursor::pos());
 }
 
 // реакция на вызов контекстного меню
@@ -511,12 +649,12 @@ void JournalTableWidget::showContextMenu(const QPoint &)
     // находим колонку ячейки
     QTableWidgetItem *col_item = this->horizontalHeaderItem(item->column());
     if (!col_item) return;
-    curCol = col_item->data(Qt::UserRole).toInt();
+    curColId = col_item->data(Qt::UserRole).toInt();
 
     // находим строку ячейки
     QTableWidgetItem *row_item = this->verticalHeaderItem(item->row());
     if (!row_item) return;
-    curRow = row_item->data(Qt::UserRole).toInt();
+    curRowId = row_item->data(Qt::UserRole).toInt();
 
     // скрываем элементы редактирования, если журнал открыт в режиме чтения
     action5->setVisible(!isReadOnly);
@@ -532,7 +670,7 @@ void JournalTableWidget::showContextMenu(const QPoint &)
     // скрываем пункт "очистить", если в данной ячейке нет никакого значения
     if (actionClear->isVisible())
     {
-        Value *value = journal->getValue(curCol, curRow);
+        Value *value = journal->getValue(curColId, curRowId);
         actionClear->setVisible(value);
     }
 
@@ -554,7 +692,7 @@ void JournalTableWidget::contextActionTriggered()
     // если очищаем
     else if (action == actionClear)
     {
-        journal->clearValue(curCol, curRow);
+        journal->clearValue(curColId, curRowId);
 
         setItemData(this->currentItem(), 0);
 
@@ -565,8 +703,35 @@ void JournalTableWidget::contextActionTriggered()
     {
         QString mark = action->data().toString();
 
-        setItemData(this->currentItem(), journal->setValue(curCol, curRow, mark));
+        setItemData(this->currentItem(), journal->setValue(curColId, curRowId, mark));
 
         emit journalChanged();
     }
+}
+
+// реакция на выбор элемента контекстного меню колонки
+void JournalTableWidget::contextActionColumnTriggered()
+{
+    // узнаём выбранный элемент контекстного меню
+    QAction *action = qobject_cast<QAction *>(sender());
+
+    // если изменяем
+    if (action == actionColumnEdit)
+    {
+        editColumn(curColId);
+    }
+    // если удаляем
+    else if (action == actionColumnDelete)
+    {
+        deleteColumn(curColId);
+    }
+}
+
+// реакция на контекстное меню заголовка колонки
+void JournalTableWidget::columnContext(const QPoint &pos) {
+    // вычисляем колонку, у которой вызвали контекстное меню
+    int col = this->horizontalHeader()->logicalIndexAt(pos);
+
+    // вызываем контекстное меню
+    columnClicked(col);
 }

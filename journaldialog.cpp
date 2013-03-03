@@ -9,11 +9,13 @@ JournalDialog::JournalDialog(Journals *journals, QWidget *parent) :
 
     if (!journals || !journals->loader->user) return;
 
+    autoName = "";
+
     User *user = journals->loader->user;
 
     // скрываем виджеты ввода наименования
     ui->labelName->hide();
-    ui->lineEditName->hide();
+    ui->frameName->hide();
 
     // заполняем список классов
     ui->comboBoxClass->clear();
@@ -70,12 +72,12 @@ void JournalDialog::editJournal(Journal *journal)
     this->setWindowTitle(tr("Редактирование журнала «%1»").arg(journal->getName().replace("\n", " ")));
 
     // наименование
-    ui->lineEditName->setText(journal->getName());
+    autoName = journal->getName();
     if (journal->name != "")
     {
         ui->labelNameAuto->hide();
         ui->labelName->show();
-        ui->lineEditName->show();
+        ui->frameName->show();
         ui->lineEditName->setText(journal->name);
     }   
 
@@ -110,12 +112,29 @@ void JournalDialog::on_labelNameAuto_linkActivated()
     // скрываем надпись
     ui->labelNameAuto->hide();
 
+    // устанавливаем автоматически сформированое имя
+    ui->lineEditName->setText(autoName);
+
     // показываем виджеты ввода наименования
     ui->labelName->show();
-    ui->lineEditName->show();
+    ui->frameName->show();
 
     // ставим фокус
     ui->lineEditName->setFocus();
+}
+
+// реакция на нажатие кнопки "формировать название автоматически"
+void JournalDialog::on_toolButtonAuto_clicked()
+{
+    // показываем надпись
+    ui->labelNameAuto->show();
+
+    // удаляем имя
+    ui->lineEditName->setText("");
+
+    // скрываем виджеты ввода наименования
+    ui->labelName->hide();
+    ui->frameName->hide();
 }
 
 // реакция на нажатие кнопки "OK"

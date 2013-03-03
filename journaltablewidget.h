@@ -6,6 +6,9 @@
 #include <QMenu>
 #include <QContextMenuEvent>
 #include <QLayout>
+#include <QMessageBox>
+#include <QApplication>
+#include <QStyle>
 
 #include "journals.h"
 #include "journal.h"
@@ -39,18 +42,18 @@ private:
     /* внутренние данные */
     Journals *journals;
     Journal *journal;
-    QMenu *context;
     bool isReadOnly; // журнал открылся в режиме "только для чтения"
 
-    /* текущие выбранные колонка и строка */
-    int curCol;
-    int curRow;
+    /* текущие идентификаторы выбранных колонки и строки */
+    int curColId;
+    int curRowId;
 
-    /* элементы верхней панели */
+    /* элементы панели инструментов */
     QFrame *frameToolBar;
     QPushButton *buttonCreateColumn;
 
-    /* элементы контекстного меню */
+    /* контекстное меню */
+    QMenu *context;
     QAction *action5;
     QAction *action4;
     QAction *action3;
@@ -62,6 +65,11 @@ private:
     QAction *actionComments;
     QAction *actionClear;
 
+    /* контекстное меню колонки */
+    QMenu *contextColumn;
+    QAction *actionColumnEdit;
+    QAction *actionColumnDelete;
+
     /* функции работы с заполнением таблицы */
     void clearAll();
     void fillAll();
@@ -70,6 +78,10 @@ private:
     void setItemData(QTableWidgetItem *item, Value *value);
     void showComments();
     void setNextMark();
+
+    /* колонки */
+    void editColumn(int colId);
+    void deleteColumn(int colId);
 
 protected:
     /* отлов событий окна */
@@ -86,13 +98,18 @@ signals:
 private slots:
     /* действия с таблицей */
     void itemDoubleClicked(QTableWidgetItem *item); // двойной клик
+    void columnClicked(int col);
 
-    /* верхняя панель */
+    /* панель инструментов */
     void createColumn();
 
     /* действия с контекстным меню */
     void showContextMenu(const QPoint &);
     void contextActionTriggered();
+
+    /* действия с контекстным меню колонки */
+    void columnContext(const QPoint &pos);
+    void contextActionColumnTriggered();
     
 };
 
